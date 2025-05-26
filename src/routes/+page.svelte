@@ -19,19 +19,20 @@
   }
 
   function createNote() {
-    if (!newNoteTitle.trim() && !newNoteContent.trim()) {
-      return; // do nothing if neither title nor content is non‐empty
+    // Only create a note if there's content
+    if (newNoteTitle.trim() || newNoteContent.trim()) {
+      notesStore.addNote({
+        title: newNoteTitle.trim(),
+        content: newNoteContent.trim(),
+        color: 'default',
+        tags: [],
+        isPinned: false,
+        isArchived: false,
+        isDeleted: false
+      });
     }
-    notesStore.addNote({
-      title: newNoteTitle.trim(),
-      content: newNoteContent.trim(),
-      color: 'default',
-      tags: [],
-      isPinned: false,
-      isArchived: false,
-      isDeleted: false
-    });
-    // Reset form
+    
+    // Always reset and close the modal
     newNoteTitle = '';
     newNoteContent = '';
     showNewNoteModal = false;

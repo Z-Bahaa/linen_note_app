@@ -1,0 +1,126 @@
+<script lang="ts">
+  import { notesStore, filteredNotes } from '$lib/stores/notes';
+  import Note from './Note.svelte';
+  import { fade } from 'svelte/transition';
+  import type { Note as NoteType } from '$lib/types';
+
+  let editingNoteId: string | null = null;
+
+  function handleNoteAction(note: NoteType, action: string) {
+    switch (action) {
+      case 'edit':
+        editingNoteId = note.id;
+        break;
+      case 'delete':
+        if (confirm('Are you sure you want to delete this note?')) {
+          notesStore.deleteNote(note.id);
+        }
+        break;
+      case 'archive':
+        if (note.isArchived) {
+          notesStore.unarchiveNote(note.id);
+        } else {
+          notesStore.archiveNote(note.id);
+        }
+        break;
+      case 'pin':
+        notesStore.togglePin(note.id);
+        break;
+    }
+  }
+
+  function handleColorChange(note: NoteType, color: NoteType['color']) {
+    notesStore.updateNote(note.id, { color });
+  }
+
+  function handleNoteUpdate(note: NoteType, updates: Partial<NoteType>) {
+    notesStore.updateNote(note.id, updates);
+    if (editingNoteId === note.id) {
+      editingNoteId = null;
+    }
+  }
+</script>
+
+<div class="notes-container" class:list-view={$notesStore.view === 'list'}>
+  {#each $filteredNotes as note (note.id)}
+    <div
+      class="note-wrapper"
+      class:pinned={note.isPinned}
+      transition:fade={{ duration: 200 }}
+    >
+      <Note
+        {note}
+        isEditing={editingNoteId === note.id}
+        on:edit={() => handleNoteAction(note, 'edit')}
+        on:delete={() => handleNoteAction(note, 'delete')}
+        on:archive={() => handleNoteAction(note, 'archive')}
+        on:pin={() => handleNoteAction(note, 'pin')}
+        on:colorChange={(e) => handleColorChange(note, e.detail)}
+      />
+    </div>
+  {/each}
+
+  {#if $filteredNotes.length === 0}
+    <div class="empty-state" transition:fade>
+      <p class="empty-message">
+        {#if $notesStore.searchQuery}
+          No notes found matching your search.
+        {:else if $notesStore.activeTags.length > 0}
+          No notes found with the selected tags.
+        {:else if $notesStore.activeFolder}
+          No notes in this folder.
+        {:else}
+          No notes yet. Create your first note!
+        {/if}
+      </p>
+    </div>
+  {/if}
+</div>
+
+<style>
+  .notes-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  .notes-container.list-view {
+    grid-template-columns: 1fr;
+    max-width: 800px;
+  }
+
+  .note-wrapper {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .note-wrapper.pinned {
+    order: -1;
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--spacing-xl);
+    background-color: var(--color-bg-secondary);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .empty-message {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 640px) {
+    .notes-container {
+      grid-template-columns: 1fr;
+      padding: var(--spacing-sm);
+    }
+  }
+</style> 

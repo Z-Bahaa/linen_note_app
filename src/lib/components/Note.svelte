@@ -49,6 +49,15 @@
     isHovered = false;
     showActions = false;
   }}
+  on:click={(e) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('.note-actions') ||
+      target.closest('.color-picker') ||
+      target.closest('.action-button')
+    ) return;
+    dispatch('edit');
+  }}
   transition:fly={{ y: 20, duration: 200 }}
 >
   <div class="note-header">
@@ -109,13 +118,6 @@
           on:click={() => dispatch('archive')}
         >
           {note.isArchived ? '📦' : '📥'}
-        </button>
-        <button
-          class="action-button"
-          title="Edit"
-          on:click={() => dispatch('edit')}
-        >
-          ✏️
         </button>
         <button
           class="action-button delete"

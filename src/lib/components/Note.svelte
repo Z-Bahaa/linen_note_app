@@ -50,6 +50,7 @@
     showActions = false;
   }}
   on:click={(e) => {
+    
     const target = e.target as HTMLElement;
     if (
       target.closest('.note-actions') ||
@@ -65,7 +66,11 @@
       {note.title || 'Untitled Note'}
     </h3>
     {#if note.isPinned}
-      <span class="pin-indicator" title="Pinned">📌</span>
+      <span class="pin-indicator" title="Pinned">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 8, 1 L 8, 15 M 4, 5 L 12, 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </span>
     {/if}
   </div>
 
@@ -103,28 +108,40 @@
           title="Change color"
           on:click={() => (showActions = !showActions)}
         >
-          🎨
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" fill="none" />
+            <circle cx="8" cy="8" r="2" fill="currentColor" />
+          </svg>
         </button>
         <button
           class="action-button"
           title={note.isPinned ? 'Unpin' : 'Pin'}
           on:click={() => dispatch('pin')}
         >
-          {note.isPinned ? '📌' : '📍'}
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 8, 1 L 8, 15 M 4, 5 L 12, 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </button>
         <button
           class="action-button"
           title={note.isArchived ? 'Unarchive' : 'Archive'}
           on:click={() => dispatch('archive')}
         >
-          {note.isArchived ? '📦' : '📥'}
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="12" height="12" rx="1" stroke="currentColor" stroke-width="1.5" fill="none" />
+            <line x1="2" y1="6" x2="14" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
         </button>
         <button
           class="action-button delete"
           title="Delete"
           on:click={() => dispatch('delete')}
         >
-          🗑️
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="12" height="12" rx="1" stroke="currentColor" stroke-width="1.5" fill="none" />
+            <line x1="4" y1="4" x2="12" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            <line x1="12" y1="4" x2="4" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
         </button>
       </div>
     {/if}

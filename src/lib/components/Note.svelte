@@ -38,8 +38,11 @@
       year: 'numeric'
     });
   }
+
+  $: displayTitle = note.title ? note.title : '';
 </script>
 
+{#if note.title || note.content}
 <div
   class="note-card {colorClasses[note.color]}"
   class:editing={isEditing}
@@ -50,7 +53,6 @@
     showActions = false;
   }}
   on:click={(e) => {
-    
     const target = e.target as HTMLElement;
     if (
       target.closest('.note-actions') ||
@@ -62,9 +64,17 @@
   transition:fly={{ y: 20, duration: 200 }}
 >
   <div class="note-header">
-    <h3 class="note-title" class:empty={!note.title}>
-      {note.title || 'Untitled Note'}
-    </h3>
+    {#if isEditing}
+      <input
+        bind:value={note.title}
+        placeholder="Enter title..."
+        class="note-title-input"
+      />
+    {:else if note.title}
+      <h3 class="note-title" class:empty={!note.title}>
+        {note.title}
+      </h3>
+    {/if}
     {#if note.isPinned}
       <span class="pin-indicator" title="Pinned">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -72,6 +82,7 @@
         </svg>
       </span>
     {/if}
+    <span style="display: none;">{note.id}</span>
   </div>
 
   <div class="note-content">
@@ -160,6 +171,7 @@
     </div>
   {/if}
 </div>
+{/if}
 
 <style>
   .note-card {
@@ -343,4 +355,18 @@
   .note-color-yellow { background-color: var(--note-color-yellow); }
   .note-color-red { background-color: var(--note-color-red); }
   .note-color-purple { background-color: var(--note-color-purple); }
+
+  .note-title-input {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    background: transparent;
+    border: none;
+    width: 100%;
+    padding: 0;
+  }
+  .note-title-input:focus {
+    outline: none;
+  }
 </style> 

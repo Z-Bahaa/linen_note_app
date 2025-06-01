@@ -25,6 +25,9 @@
       case 'archive':
         notesStore.archiveNote(note.id);
         break;
+      case 'toggleArchive':
+        notesStore.toggleArchive(note.id);
+        break;
       case 'select':
         notesStore.toggleNoteSelection(note.id);
         break;

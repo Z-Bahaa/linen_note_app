@@ -134,6 +134,17 @@ function createNotesStore() {
       }));
     },
 
+    toggleArchive: (id: string) => {
+      update(state => ({
+        ...state,
+        notes: state.notes.map(note =>
+          note.id === id
+            ? { ...note, isArchived: !note.isArchived, updatedAt: new Date().toISOString() }
+            : note
+        )
+      }));
+    },
+
     togglePin: (id: string) => {
       update(state => ({
         ...state,
@@ -357,6 +368,7 @@ export const notesStoreActions = {
   restoreAllFromTrash: notesStore.restoreAllFromTrash,
   restoreNote: notesStore.restoreNote,
   archiveNote: notesStore.archiveNote,
+  toggleArchive: notesStore.toggleArchive,
   togglePin: notesStore.togglePin,
   toggleArchived: notesStore.toggleArchived,
   toggleDeleted: notesStore.toggleDeleted,

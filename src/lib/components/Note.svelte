@@ -35,21 +35,37 @@
   }
 
   function formatDate(date: string) {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
     });
   }
 
   $: displayTitle = note.title ? note.title : '';
+  $: deletedAt = note.isDeleted ? note.updatedAt : null;
 
   function handleClick(event: MouseEvent) {
-    // If in trash view, clicking the note toggles selection
-    if ($currentViewType === 'trash') {
-      event.preventDefault();
-      dispatch('action', 'select');
+    // Only handle click for editing in normal view
+    if ($currentViewType === 'active') {
+      const target = event.target as HTMLElement;
+      if (
+        target.closest('.note-actions') ||
+        target.closest('.color-picker') ||
+        target.closest('.action-button') ||
+        target.closest('.selection-indicator')
+      ) return;
+      dispatch('edit');
     }
+  }
+
+  function handleSelectionClick(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    dispatch('action', 'select');
   }
 </script>
 
@@ -104,9 +120,16 @@
 
   <div class="note-footer">
     <div class="note-meta">
-      <span class="note-date" title="Last updated">
-        {formatDate(note.updatedAt)}
-      </span>
+      {#if $currentViewType === 'trash' && deletedAt}
+        <div class="deletion-info">
+          <span class="deletion-label">Deleted at</span>
+          <span class="deletion-date">{formatDate(deletedAt)}</span>
+        </div>
+      {:else}
+        <span class="note-date" title="Last updated">
+          {formatDate(note.updatedAt)}
+        </span>
+      {/if}
       {#if note.tags.length > 0}
         <div class="note-tags">
           {#each note.tags as tag}
@@ -116,7 +139,32 @@
       {/if}
     </div>
 
-    {#if isHovered}
+    {#if $currentViewType === 'trash'}
+      <div class="note-actions trash-actions" class:visible={isHovered}>
+        <button
+          class="action-button restore"
+          title="Restore note"
+          on:click={() => dispatch('restore')}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8ZM8 13C10.7614 13 13 10.7614 13 8C13 5.23858 10.7614 3 8 3C5.23858 3 3 5.23858 3 8C3 10.7614 5.23858 13 8 13Z" fill="currentColor"/>
+            <path d="M8 4.5C8 4.22386 7.77614 4 7.5 4C7.22386 4 7 4.22386 7 4.5V8.5C7 8.77614 7.22386 9 7.5 9H10.5C10.7761 9 11 8.77614 11 8.5C11 8.22386 10.7761 8 10.5 8H8V4.5Z" fill="currentColor"/>
+          </svg>
+        </button>
+        <button
+          class="action-button delete"
+          title="Delete permanently"
+          on:click={() => dispatch('delete')}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6.5 2.5C6.5 2.22386 6.72386 2 7 2H9C9.27614 2 9.5 2.22386 9.5 2.5V3H6.5V2.5Z" fill="currentColor"/>
+            <path d="M4 4.5C4 4.22386 4.22386 4 4.5 4H11.5C11.7761 4 12 4.22386 12 4.5V13.5C12 13.7761 11.7761 14 11.5 14H4.5C4.22386 14 4 13.7761 4 13.5V4.5ZM5 5V13H11V5H5Z" fill="currentColor"/>
+            <path d="M6.5 6.5C6.5 6.22386 6.72386 6 7 6C7.27614 6 7.5 6.22386 7.5 6.5V11.5C7.5 11.7761 7.27614 12 7 12C6.72386 12 6.5 11.7761 6.5 11.5V6.5Z" fill="currentColor"/>
+            <path d="M8.5 6.5C8.5 6.22386 8.72386 6 9 6C9.27614 6 9.5 6.22386 9.5 6.5V11.5C9.5 11.7761 9.27614 12 9 12C8.72386 12 8.5 11.7761 8.5 11.5V6.5Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    {:else if isHovered}
       <div class="note-actions" transition:fade>
         {#if $currentViewType !== 'trash'}
           <button
@@ -150,20 +198,6 @@
             </svg>
           </button>
         {/if}
-        
-        {#if $currentViewType === 'trash'}
-          <button
-            class="action-button restore"
-            title="Restore note"
-            on:click={() => dispatch('restore')}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8ZM8 13C10.7614 13 13 10.7614 13 8C13 5.23858 10.7614 3 8 3C5.23858 3 3 5.23858 3 8C3 10.7614 5.23858 13 8 13Z" fill="currentColor"/>
-              <path d="M8 4.5C8 4.22386 7.77614 4 7.5 4C7.22386 4 7 4.22386 7 4.5V8.5C7 8.77614 7.22386 9 7.5 9H10.5C10.7761 9 11 8.77614 11 8.5C11 8.22386 10.7761 8 10.5 8H8V4.5Z" fill="currentColor"/>
-            </svg>
-          </button>
-        {/if}
-
         <button
           class="action-button delete"
           title={$currentViewType === 'trash' ? 'Delete permanently' : 'Move to trash'}
@@ -193,8 +227,12 @@
     </div>
   {/if}
 
-  {#if $currentViewType === 'trash'}
-    <div class="selection-indicator" class:selected={isSelected}>
+  {#if $currentViewType === 'trash' || $currentViewType === 'archived'}
+    <div 
+      class="selection-indicator" 
+      class:selected={isSelected}
+      on:click={handleSelectionClick}
+    >
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         {#if isSelected}
           <path d="M13.5 3.5C13.5 2.67157 12.8284 2 12 2H4C3.17157 2 2.5 2.67157 2.5 3.5V12.5C2.5 13.3284 3.17157 14 4 14H12C12.8284 14 13.5 13.3284 13.5 12.5V3.5ZM12 3C12.2761 3 12.5 3.22386 12.5 3.5V12.5C12.5 12.7761 12.2761 13 12 13H4C3.72386 13 3.5 12.7761 3.5 12.5V3.5C3.5 3.22386 3.72386 3 4 3H12Z" fill="currentColor"/>
@@ -431,6 +469,8 @@
     align-items: center;
     justify-content: center;
     transition: all var(--transition-fast);
+    cursor: pointer;
+    z-index: 1;
   }
 
   .selection-indicator:hover {
@@ -440,5 +480,32 @@
 
   .selection-indicator.selected {
     color: var(--color-accent-blue);
+  }
+
+  .deletion-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--color-accent-red);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .deletion-label {
+    opacity: 0.8;
+  }
+
+  .deletion-date {
+    font-weight: 500;
+  }
+
+  .trash-actions {
+    opacity: 0;
+    visibility: visible;
+    transition: opacity var(--transition-fast);
+  }
+
+  .trash-actions.visible {
+    opacity: 1;
   }
 </style> 

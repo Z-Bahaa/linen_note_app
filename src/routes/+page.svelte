@@ -139,6 +139,36 @@
     notesStore.clearSelection();
   }
 
+  function handleUnarchiveSelected() {
+    const selectedCount = $notesStore.selectedNotes.size;
+    const message = selectedCount === 0 
+      ? 'Are you sure you want to unarchive all notes?'
+      : `Are you sure you want to unarchive ${selectedCount} selected note${selectedCount === 1 ? '' : 's'}?`;
+    
+    if (confirm(message)) {
+      if (selectedCount === 0) {
+        notesStore.unarchiveAll();
+      } else {
+        notesStore.unarchiveSelected();
+      }
+    }
+  }
+
+  function handleMoveToTrash() {
+    const selectedCount = $notesStore.selectedNotes.size;
+    const message = selectedCount === 0 
+      ? 'Are you sure you want to move all archived notes to trash?'
+      : `Are you sure you want to move ${selectedCount} selected note${selectedCount === 1 ? '' : 's'} to trash?`;
+    
+    if (confirm(message)) {
+      if (selectedCount === 0) {
+        notesStore.moveAllToTrash();
+      } else {
+        notesStore.moveSelectedToTrash();
+      }
+    }
+  }
+
   // Focus title input when modal opens
   $: if (showNewNoteModal) {
     setTimeout(() => {
@@ -168,7 +198,7 @@
               All Notes
             {/if}
           </h1>
-          {#if $currentViewType === 'trash'}
+          {#if $currentViewType === 'trash' || $currentViewType === 'archived'}
             <div class="selection-actions">
               {#if $notesStore.selectedNotes.size > 0}
                 <button 
@@ -205,6 +235,23 @@
               title={$notesStore.selectedNotes.size === 0 ? "Permanently delete all notes in trash" : `Permanently delete ${$notesStore.selectedNotes.size} selected note${$notesStore.selectedNotes.size === 1 ? '' : 's'}`}
             >
               {$notesStore.selectedNotes.size === 0 ? 'Delete All' : `Delete ${$notesStore.selectedNotes.size} Note${$notesStore.selectedNotes.size === 1 ? '' : 's'}`}
+            </button>
+          </div>
+        {:else if $currentViewType === 'archived'}
+          <div class="header-actions">
+            <button 
+              class="restore-all-button"
+              on:click={handleUnarchiveSelected}
+              title={$notesStore.selectedNotes.size === 0 ? "Unarchive all notes" : `Unarchive ${$notesStore.selectedNotes.size} selected note${$notesStore.selectedNotes.size === 1 ? '' : 's'}`}
+            >
+              {$notesStore.selectedNotes.size === 0 ? 'Unarchive All' : `Unarchive ${$notesStore.selectedNotes.size} Note${$notesStore.selectedNotes.size === 1 ? '' : 's'}`}
+            </button>
+            <button 
+              class="delete-all-button"
+              on:click={handleMoveToTrash}
+              title={$notesStore.selectedNotes.size === 0 ? "Move all archived notes to trash" : `Move ${$notesStore.selectedNotes.size} selected note${$notesStore.selectedNotes.size === 1 ? '' : 's'} to trash`}
+            >
+              {$notesStore.selectedNotes.size === 0 ? 'Move All to Trash' : `Move ${$notesStore.selectedNotes.size} to Trash`}
             </button>
           </div>
         {/if}

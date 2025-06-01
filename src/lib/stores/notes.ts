@@ -166,7 +166,8 @@ function createNotesStore() {
       update(state => ({
         ...state,
         showArchived: !state.showArchived,
-        showDeleted: false // Ensure trash is hidden when showing archived
+        showDeleted: false, // Ensure trash is hidden when showing archived
+        selectedNotes: new Set() // Clear selection when toggling views
       }));
     },
 
@@ -231,6 +232,53 @@ function createNotesStore() {
             : note
         ),
         selectedNotes: new Set()
+      }));
+    },
+
+    // Add new bulk actions for archived notes
+    unarchiveSelected: () => {
+      update(state => ({
+        ...state,
+        notes: state.notes.map(note =>
+          state.selectedNotes.has(note.id)
+            ? { ...note, isArchived: false, updatedAt: new Date().toISOString() }
+            : note
+        ),
+        selectedNotes: new Set()
+      }));
+    },
+
+    moveSelectedToTrash: () => {
+      update(state => ({
+        ...state,
+        notes: state.notes.map(note =>
+          state.selectedNotes.has(note.id)
+            ? { ...note, isDeleted: true, updatedAt: new Date().toISOString() }
+            : note
+        ),
+        selectedNotes: new Set()
+      }));
+    },
+
+    unarchiveAll: () => {
+      update(state => ({
+        ...state,
+        notes: state.notes.map(note =>
+          note.isArchived && !note.isDeleted
+            ? { ...note, isArchived: false, updatedAt: new Date().toISOString() }
+            : note
+        )
+      }));
+    },
+
+    moveAllToTrash: () => {
+      update(state => ({
+        ...state,
+        notes: state.notes.map(note =>
+          note.isArchived && !note.isDeleted
+            ? { ...note, isDeleted: true, updatedAt: new Date().toISOString() }
+            : note
+        )
       }));
     },
 
@@ -318,5 +366,9 @@ export const notesStoreActions = {
   selectAllNotes: notesStore.selectAllNotes,
   clearSelection: notesStore.clearSelection,
   permanentlyDeleteSelected: notesStore.permanentlyDeleteSelected,
-  restoreSelected: notesStore.restoreSelected
+  restoreSelected: notesStore.restoreSelected,
+  unarchiveSelected: notesStore.unarchiveSelected,
+  moveSelectedToTrash: notesStore.moveSelectedToTrash,
+  unarchiveAll: notesStore.unarchiveAll,
+  moveAllToTrash: notesStore.moveAllToTrash
 }; 

@@ -344,6 +344,13 @@ export const filteredNotes = derived(
         return true;
       })
       .sort((a, b) => {
+        // Only sort by pin status in active view
+        if (!showArchived && !showDeleted) {
+          if (a.isPinned !== b.isPinned) {
+            return a.isPinned ? -1 : 1;
+          }
+        }
+
         const order = sortOrder === 'asc' ? 1 : -1;
         switch (sortBy) {
           case 'updated':

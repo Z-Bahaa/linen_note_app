@@ -103,30 +103,32 @@
       {/if}
     </div>
     <div class="note-header-actions">
-      {#if note.isPinned}
-        <button
-          class="pin-indicator"
-          title="Unpin note"
-          on:click|stopPropagation={() => dispatch('action', 'togglePin')}
-        >
-          <span class="pin-icon">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 8, 1 L 8, 15 M 4, 5 L 12, 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </span>
-        </button>
-      {:else}
-        <button
-          class="pin-indicator"
-          title="Pin note"
-          on:click|stopPropagation={() => dispatch('action', 'togglePin')}
-        >
-          <span class="pin-icon">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 8, 1 L 8, 15 M 4, 5 L 12, 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </span>
-        </button>
+      {#if $currentViewType === 'active'}
+        {#if note.isPinned}
+          <button
+            class="pin-indicator"
+            title="Unpin note"
+            on:click|stopPropagation={() => dispatch('action', 'togglePin')}
+          >
+            <span class="pin-icon">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 8, 1 L 8, 15 M 4, 5 L 12, 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+          </button>
+        {:else}
+          <button
+            class="pin-indicator"
+            title="Pin note"
+            on:click|stopPropagation={() => dispatch('action', 'togglePin')}
+          >
+            <span class="pin-icon">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 8, 1 L 8, 15 M 4, 5 L 12, 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+          </button>
+        {/if}
       {/if}
     </div>
     <span style="display: none;">{note.id}</span>

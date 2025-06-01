@@ -101,6 +101,44 @@
     }
   }
 
+  function handleDeleteSelected() {
+    const selectedCount = $notesStore.selectedNotes.size;
+    const message = selectedCount === 0 
+      ? 'Are you sure you want to permanently delete all notes in trash? This action cannot be undone.'
+      : `Are you sure you want to permanently delete ${selectedCount} selected note${selectedCount === 1 ? '' : 's'}? This action cannot be undone.`;
+    
+    if (confirm(message)) {
+      if (selectedCount === 0) {
+        notesStore.permanentlyDeleteAllTrash();
+      } else {
+        notesStore.permanentlyDeleteSelected();
+      }
+    }
+  }
+
+  function handleRestoreSelected() {
+    const selectedCount = $notesStore.selectedNotes.size;
+    const message = selectedCount === 0 
+      ? 'Are you sure you want to restore all notes from trash?'
+      : `Are you sure you want to restore ${selectedCount} selected note${selectedCount === 1 ? '' : 's'}?`;
+    
+    if (confirm(message)) {
+      if (selectedCount === 0) {
+        notesStore.restoreAllFromTrash();
+      } else {
+        notesStore.restoreSelected();
+      }
+    }
+  }
+
+  function handleSelectAll() {
+    notesStore.selectAllNotes();
+  }
+
+  function handleClearSelection() {
+    notesStore.clearSelection();
+  }
+
   // Focus title input when modal opens
   $: if (showNewNoteModal) {
     setTimeout(() => {
@@ -119,15 +157,58 @@
   
   <div class="content-wrapper">
     <div class="view-header">
-      <h1>
-        {#if $currentViewType === 'archived'}
-          Archived Notes
-        {:else if $currentViewType === 'trash'}
-          Trash
-        {:else}
-          All Notes
+      <div class="header-content">
+        <div class="header-left">
+          <h1>
+            {#if $currentViewType === 'archived'}
+              Archived Notes
+            {:else if $currentViewType === 'trash'}
+              Trash
+            {:else}
+              All Notes
+            {/if}
+          </h1>
+          {#if $currentViewType === 'trash'}
+            <div class="selection-actions">
+              {#if $notesStore.selectedNotes.size > 0}
+                <button 
+                  class="selection-button"
+                  on:click={handleClearSelection}
+                  title="Clear selection"
+                >
+                  Clear Selection
+                </button>
+              {:else}
+                <button 
+                  class="selection-button"
+                  on:click={handleSelectAll}
+                  title="Select all notes"
+                >
+                  Select All
+                </button>
+              {/if}
+            </div>
+          {/if}
+        </div>
+        {#if $currentViewType === 'trash'}
+          <div class="header-actions">
+            <button 
+              class="restore-all-button"
+              on:click={handleRestoreSelected}
+              title={$notesStore.selectedNotes.size === 0 ? "Restore all notes from trash" : `Restore ${$notesStore.selectedNotes.size} selected note${$notesStore.selectedNotes.size === 1 ? '' : 's'}`}
+            >
+              {$notesStore.selectedNotes.size === 0 ? 'Restore All' : `Restore ${$notesStore.selectedNotes.size} Note${$notesStore.selectedNotes.size === 1 ? '' : 's'}`}
+            </button>
+            <button 
+              class="delete-all-button"
+              on:click={handleDeleteSelected}
+              title={$notesStore.selectedNotes.size === 0 ? "Permanently delete all notes in trash" : `Permanently delete ${$notesStore.selectedNotes.size} selected note${$notesStore.selectedNotes.size === 1 ? '' : 's'}`}
+            >
+              {$notesStore.selectedNotes.size === 0 ? 'Delete All' : `Delete ${$notesStore.selectedNotes.size} Note${$notesStore.selectedNotes.size === 1 ? '' : 's'}`}
+            </button>
+          </div>
         {/if}
-      </h1>
+      </div>
     </div>
     
     <NotesGrid />
@@ -443,6 +524,122 @@
 
     .view-header h1 {
       font-size: 1.2rem;
+    }
+  }
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+  }
+
+  .delete-all-button,
+  .restore-all-button {
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: none;
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .delete-all-button {
+    border: 1px solid var(--color-accent-red);
+    color: var(--color-accent-red);
+  }
+
+  .delete-all-button:hover {
+    background-color: var(--color-accent-red);
+    color: white;
+  }
+
+  .restore-all-button {
+    border: 1px solid var(--color-accent-blue);
+    color: var(--color-accent-blue);
+  }
+
+  .restore-all-button:hover {
+    background-color: var(--color-accent-blue);
+    color: white;
+  }
+
+  @media (max-width: 640px) {
+    .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--spacing-sm);
+    }
+
+    .header-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+
+    .delete-all-button,
+    .restore-all-button {
+      padding: var(--spacing-xs) var(--spacing-sm);
+      font-size: 0.8rem;
+    }
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  .selection-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+  }
+
+  .selection-button {
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .selection-button:hover {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-light);
+  }
+
+  @media (max-width: 640px) {
+    .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--spacing-sm);
+    }
+
+    .header-left {
+      width: 100%;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--spacing-sm);
+    }
+
+    .selection-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+
+    .header-actions {
+      width: 100%;
+      justify-content: flex-end;
     }
   }
 </style>

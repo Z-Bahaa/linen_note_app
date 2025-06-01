@@ -6,14 +6,11 @@
 
   let editingNoteId: string | null = null;
 
-  function handleNoteAction(note: NoteType, action: string) {
+  function handleNoteAction(action: string, note: NoteType) {
     switch (action) {
-      case 'edit':
-        editingNoteId = note.id;
-        break;
       case 'delete':
         if ($currentViewType === 'trash') {
-          if (confirm('Are you sure you want to permanently delete this note? This action cannot be undone.')) {
+          if (confirm('Are you sure you want to permanently delete this note?')) {
             notesStore.permanentlyDeleteNote(note.id);
           }
         } else {
@@ -22,18 +19,14 @@
           }
         }
         break;
-      case 'archive':
-        if (note.isArchived) {
-          notesStore.unarchiveNote(note.id);
-        } else {
-          notesStore.archiveNote(note.id);
-        }
-        break;
-      case 'pin':
-        notesStore.togglePin(note.id);
-        break;
       case 'restore':
         notesStore.restoreNote(note.id);
+        break;
+      case 'archive':
+        notesStore.archiveNote(note.id);
+        break;
+      case 'select':
+        notesStore.toggleNoteSelection(note.id);
         break;
     }
   }
@@ -55,17 +48,20 @@
     <div
       class="note-wrapper"
       class:pinned={note.isPinned}
+      class:selected={$notesStore.selectedNotes.has(note.id)}
       transition:fade={{ duration: 200 }}
     >
       <Note
         {note}
         isEditing={editingNoteId === note.id}
-        on:edit={() => handleNoteAction(note, 'edit')}
-        on:delete={() => handleNoteAction(note, 'delete')}
-        on:archive={() => handleNoteAction(note, 'archive')}
-        on:pin={() => handleNoteAction(note, 'pin')}
-        on:restore={() => handleNoteAction(note, 'restore')}
+        on:edit={() => handleNoteAction('edit', note)}
+        on:delete={() => handleNoteAction('delete', note)}
+        on:archive={() => handleNoteAction('archive', note)}
+        on:pin={() => handleNoteAction('pin', note)}
+        on:restore={() => handleNoteAction('restore', note)}
         on:colorChange={(e) => handleColorChange(note, e.detail)}
+        on:action={(e) => handleNoteAction(e.detail, note)}
+        isSelected={$notesStore.selectedNotes.has(note.id)}
       />
     </div>
   {/each}
@@ -112,6 +108,12 @@
 
   .note-wrapper.pinned {
     order: -1;
+  }
+
+  .note-wrapper.selected {
+    outline: 2px solid var(--color-accent-blue);
+    outline-offset: 2px;
+    border-radius: var(--radius-md);
   }
 
   .empty-state {

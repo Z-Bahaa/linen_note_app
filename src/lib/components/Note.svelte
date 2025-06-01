@@ -6,6 +6,7 @@
 
   export let note: Note;
   export let isEditing = false;
+  export let isSelected = false;
 
   const dispatch = createEventDispatcher<{
     edit: void;
@@ -14,6 +15,7 @@
     pin: void;
     restore: void;
     colorChange: NoteColor;
+    action: string;
   }>();
 
   let isHovered = false;
@@ -41,6 +43,14 @@
   }
 
   $: displayTitle = note.title ? note.title : '';
+
+  function handleClick(event: MouseEvent) {
+    // If in trash view, clicking the note toggles selection
+    if ($currentViewType === 'trash') {
+      event.preventDefault();
+      dispatch('action', 'select');
+    }
+  }
 </script>
 
 {#if note.title || note.content}
@@ -48,20 +58,13 @@
   class="note-card {colorClasses[note.color]}"
   class:editing={isEditing}
   class:pinned={note.isPinned}
+  class:selected={isSelected}
   on:mouseenter={() => (isHovered = true)}
   on:mouseleave={() => {
     isHovered = false;
     showActions = false;
   }}
-  on:click={(e) => {
-    const target = e.target as HTMLElement;
-    if (
-      target.closest('.note-actions') ||
-      target.closest('.color-picker') ||
-      target.closest('.action-button')
-    ) return;
-    dispatch('edit');
-  }}
+  on:click={handleClick}
   transition:fly={{ y: 20, duration: 200 }}
 >
   <div class="note-header">
@@ -187,6 +190,19 @@
           title={color.charAt(0).toUpperCase() + color.slice(1)}
         />
       {/each}
+    </div>
+  {/if}
+
+  {#if $currentViewType === 'trash'}
+    <div class="selection-indicator" class:selected={isSelected}>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {#if isSelected}
+          <path d="M13.5 3.5C13.5 2.67157 12.8284 2 12 2H4C3.17157 2 2.5 2.67157 2.5 3.5V12.5C2.5 13.3284 3.17157 14 4 14H12C12.8284 14 13.5 13.3284 13.5 12.5V3.5ZM12 3C12.2761 3 12.5 3.22386 12.5 3.5V12.5C12.5 12.7761 12.2761 13 12 13H4C3.72386 13 3.5 12.7761 3.5 12.5V3.5C3.5 3.22386 3.72386 3 4 3H12Z" fill="currentColor"/>
+          <path d="M6.5 7.5C6.5 6.94772 6.94772 6.5 7.5 6.5H8.5C9.05228 6.5 9.5 6.94772 9.5 7.5V8.5C9.5 9.05228 9.05228 9.5 8.5 9.5H7.5C6.94772 9.5 6.5 9.05228 6.5 8.5V7.5Z" fill="currentColor"/>
+        {:else}
+          <path d="M13.5 3.5C13.5 2.67157 12.8284 2 12 2H4C3.17157 2 2.5 2.67157 2.5 3.5V12.5C2.5 13.3284 3.17157 14 4 14H12C12.8284 14 13.5 13.3284 13.5 12.5V3.5ZM12 3C12.2761 3 12.5 3.22386 12.5 3.5V12.5C12.5 12.7761 12.2761 13 12 13H4C3.72386 13 3.5 12.7761 3.5 12.5V3.5C3.5 3.22386 3.72386 3 4 3H12Z" fill="currentColor"/>
+        {/if}
+      </svg>
     </div>
   {/if}
 </div>
@@ -391,5 +407,38 @@
   }
   .note-title-input:focus {
     outline: none;
+  }
+
+  .note {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .note.selected {
+    outline: 2px solid var(--color-accent-blue);
+    outline-offset: 2px;
+  }
+
+  .selection-indicator {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    color: var(--color-text-muted);
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: var(--spacing-xs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+  }
+
+  .selection-indicator:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-tertiary);
+  }
+
+  .selection-indicator.selected {
+    color: var(--color-accent-blue);
   }
 </style> 

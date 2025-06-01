@@ -22,6 +22,7 @@ export interface NoteState {
   sortOrder: 'asc' | 'desc';
   showArchived: boolean;
   showDeleted: boolean;
+  selectedNotes: Set<string>;
 }
 
 export type NoteFilter = {

@@ -13,21 +13,34 @@ const initialState: NoteState = {
   sortBy: 'updated',
   sortOrder: 'desc',
   showArchived: false,
-  showDeleted: false
+  showDeleted: false,
+  selectedNotes: new Set<string>()
 };
 
 // Create the store
 function createNotesStore() {
   // Load initial state from localStorage if available
   const storedState = browser ? localStorage.getItem(STORAGE_KEY) : null;
-  const initial = storedState ? JSON.parse(storedState) : initialState;
+  const parsedState = storedState ? JSON.parse(storedState) : null;
+  
+  // Ensure selectedNotes is always initialized
+  const initial = {
+    ...initialState,
+    ...parsedState,
+    selectedNotes: new Set(parsedState?.selectedNotes || [])
+  };
   
   const { subscribe, set, update } = writable<NoteState>(initial);
 
   // Save to localStorage whenever the store changes
   if (browser) {
     subscribe(state => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      // Convert Set to Array for storage
+      const stateToStore = {
+        ...state,
+        selectedNotes: Array.from(state.selectedNotes)
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToStore));
     });
   }
 
@@ -81,6 +94,24 @@ function createNotesStore() {
       }));
     },
 
+    permanentlyDeleteAllTrash: () => {
+      update(state => ({
+        ...state,
+        notes: state.notes.filter(note => !note.isDeleted)
+      }));
+    },
+
+    restoreAllFromTrash: () => {
+      update(state => ({
+        ...state,
+        notes: state.notes.map(note =>
+          note.isDeleted
+            ? { ...note, isDeleted: false, updatedAt: new Date().toISOString() }
+            : note
+        )
+      }));
+    },
+
     restoreNote: (id: string) => {
       update(state => ({
         ...state,
@@ -98,17 +129,6 @@ function createNotesStore() {
         notes: state.notes.map(note =>
           note.id === id
             ? { ...note, isArchived: true, updatedAt: new Date().toISOString() }
-            : note
-        )
-      }));
-    },
-
-    unarchiveNote: (id: string) => {
-      update(state => ({
-        ...state,
-        notes: state.notes.map(note =>
-          note.id === id
-            ? { ...note, isArchived: false, updatedAt: new Date().toISOString() }
             : note
         )
       }));
@@ -154,12 +174,68 @@ function createNotesStore() {
       update(state => ({
         ...state,
         showDeleted: !state.showDeleted,
-        showArchived: false // Ensure archived is hidden when showing trash
+        showArchived: false, // Ensure archived is hidden when showing trash
+        selectedNotes: new Set() // Clear selection when toggling views
+      }));
+    },
+
+    // Selection actions
+    toggleNoteSelection: (id: string) => {
+      update(state => {
+        const newSelection = new Set(state.selectedNotes);
+        if (newSelection.has(id)) {
+          newSelection.delete(id);
+        } else {
+          newSelection.add(id);
+        }
+        return { ...state, selectedNotes: newSelection };
+      });
+    },
+
+    selectAllNotes: () => {
+      update(state => {
+        const visibleNotes = state.notes.filter(note => 
+          state.showDeleted ? note.isDeleted : 
+          state.showArchived ? note.isArchived && !note.isDeleted :
+          !note.isArchived && !note.isDeleted
+        );
+        return { 
+          ...state, 
+          selectedNotes: new Set(visibleNotes.map(note => note.id))
+        };
+      });
+    },
+
+    clearSelection: () => {
+      update(state => ({
+        ...state,
+        selectedNotes: new Set()
+      }));
+    },
+
+    // Modified bulk actions to work with selection
+    permanentlyDeleteSelected: () => {
+      update(state => ({
+        ...state,
+        notes: state.notes.filter(note => !state.selectedNotes.has(note.id)),
+        selectedNotes: new Set()
+      }));
+    },
+
+    restoreSelected: () => {
+      update(state => ({
+        ...state,
+        notes: state.notes.map(note =>
+          state.selectedNotes.has(note.id)
+            ? { ...note, isDeleted: false, updatedAt: new Date().toISOString() }
+            : note
+        ),
+        selectedNotes: new Set()
       }));
     },
 
     // Reset store
-    reset: () => set(initialState)
+    reset: () => set({ ...initialState, selectedNotes: new Set() })
   };
 }
 
@@ -221,4 +297,26 @@ export const currentViewType = derived(
     if ($store.showDeleted) return 'trash';
     return 'active';
   }
-); 
+);
+
+export const notesStoreActions = {
+  subscribe: notesStore.subscribe,
+  addNote: notesStore.addNote,
+  updateNote: notesStore.updateNote,
+  deleteNote: notesStore.deleteNote,
+  permanentlyDeleteNote: notesStore.permanentlyDeleteNote,
+  permanentlyDeleteAllTrash: notesStore.permanentlyDeleteAllTrash,
+  restoreAllFromTrash: notesStore.restoreAllFromTrash,
+  restoreNote: notesStore.restoreNote,
+  archiveNote: notesStore.archiveNote,
+  togglePin: notesStore.togglePin,
+  toggleArchived: notesStore.toggleArchived,
+  toggleDeleted: notesStore.toggleDeleted,
+  setSearchQuery: notesStore.setSearchQuery,
+  setView: notesStore.setView,
+  toggleNoteSelection: notesStore.toggleNoteSelection,
+  selectAllNotes: notesStore.selectAllNotes,
+  clearSelection: notesStore.clearSelection,
+  permanentlyDeleteSelected: notesStore.permanentlyDeleteSelected,
+  restoreSelected: notesStore.restoreSelected
+}; 

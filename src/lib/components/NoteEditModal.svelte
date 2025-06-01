@@ -157,6 +157,13 @@
           <button 
             type="button"
             class="modal-button save" 
+            class:note-color-default={editedNote.color === 'default'}
+            class:note-color-blue={editedNote.color === 'blue'}
+            class:note-color-green={editedNote.color === 'green'}
+            class:note-color-yellow={editedNote.color === 'yellow'}
+            class:note-color-red={editedNote.color === 'red'}
+            class:note-color-purple={editedNote.color === 'purple'}
+            class:note-color-gold={editedNote.color === 'gold'}
             on:click={handleSave}
           >
             Save
@@ -400,8 +407,16 @@
   .modal-button.save {
     background-color: var(--color-accent-blue);
     border: none;
-    color: white;
+    font-weight: 500;
   }
+
+  .modal-button.save.note-color-default { color: var(--note-color-default); }
+  .modal-button.save.note-color-blue { color: var(--note-color-blue); }
+  .modal-button.save.note-color-green { color: var(--note-color-green); }
+  .modal-button.save.note-color-yellow { color: var(--note-color-yellow); }
+  .modal-button.save.note-color-red { color: var(--note-color-red); }
+  .modal-button.save.note-color-purple { color: var(--note-color-purple); }
+  .modal-button.save.note-color-gold { color: var(--note-color-gold); }
 
   .modal-button.save:hover {
     background-color: var(--color-accent-blue);

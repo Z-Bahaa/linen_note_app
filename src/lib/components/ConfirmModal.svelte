@@ -129,7 +129,7 @@
 
   .modal-button.confirm {
     border: none;
-    color: white;
+    color: var(--color-bg-elevated);
   }
 
   .modal-button.confirm.type-danger {

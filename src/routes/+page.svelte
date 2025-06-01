@@ -65,7 +65,7 @@
     if (!validateForm()) {
       formError = 'Please fix the errors before saving';
       return;
-    }
+  }
 
     try {
       isSubmitting = true;
@@ -702,7 +702,7 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
-  }
+    }
 
   .selection-actions {
     display: flex;

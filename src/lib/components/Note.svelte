@@ -3,6 +3,7 @@
   import type { Note, NoteColor } from '$lib/types';
   import { fade, fly } from 'svelte/transition';
   import { notesStore, currentViewType } from '$lib/stores/notes';
+  import NoteEditModal from './NoteEditModal.svelte';
 
   export let note: Note;
   export let isEditing = false;
@@ -20,6 +21,7 @@
 
   let isHovered = false;
   let showActions = false;
+  let showEditModal = false;
 
   const colorClasses: Record<NoteColor, string> = {
     default: 'note-color-default',
@@ -58,9 +60,10 @@
         target.closest('.note-actions') ||
         target.closest('.color-picker') ||
         target.closest('.action-button') ||
-        target.closest('.selection-indicator')
+        target.closest('.selection-indicator') ||
+        target.closest('.pin-indicator')
       ) return;
-      dispatch('edit');
+      showEditModal = true;
     }
   }
 
@@ -68,6 +71,30 @@
     event.preventDefault();
     event.stopPropagation();
     dispatch('action', 'select');
+  }
+
+  function handleEditModalSave(event: CustomEvent<Note>) {
+    const updatedNote = event.detail;
+    notesStore.updateNote(updatedNote.id, updatedNote);
+    showEditModal = false;
+  }
+
+  function handleEditModalCancel() {
+    showEditModal = false;
+  }
+
+  function handleEditModalDelete() {
+    dispatch('delete');
+    showEditModal = false;
+  }
+
+  function handleEditModalArchive() {
+    dispatch('action', 'toggleArchive');
+    showEditModal = false;
+  }
+
+  function handleEditModalColorChange(event: CustomEvent<NoteColor>) {
+    handleColorChange(event.detail);
   }
 </script>
 
@@ -312,6 +339,16 @@
     </div>
   {/if}
 </div>
+
+<NoteEditModal
+  bind:show={showEditModal}
+  note={note}
+  on:save={handleEditModalSave}
+  on:cancel={handleEditModalCancel}
+  on:delete={handleEditModalDelete}
+  on:archive={handleEditModalArchive}
+  on:colorChange={handleEditModalColorChange}
+/>
 {/if}
 
 <style>

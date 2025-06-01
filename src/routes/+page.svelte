@@ -71,21 +71,21 @@
       isSubmitting = true;
       formError = '';
 
-      // Only create a note if there's content
+    // Only create a note if there's content
       if (formData.title.trim() || formData.content.trim()) {
-        notesStore.addNote({
+      notesStore.addNote({
           title: formData.title.trim(),
           content: formData.content.trim(),
           color: formData.color,
           tags: formData.tags,
-          isPinned: false,
-          isArchived: false,
-          isDeleted: false
-        });
-      }
-      
+        isPinned: false,
+        isArchived: false,
+        isDeleted: false
+      });
+    }
+    
       // Reset and close
-      showNewNoteModal = false;
+    showNewNoteModal = false;
     } catch (error) {
       formError = 'Failed to create note. Please try again.';
       console.error('Error creating note:', error);
@@ -266,7 +266,7 @@
       </div>
     </div>
     
-    <NotesGrid />
+  <NotesGrid />
   </div>
 </main>
 
@@ -286,15 +286,15 @@
       <div class="modal-header">
         <h2 id="modal-title" class="visually-hidden">Create New Note</h2>
         <div class="input-group">
-          <input
-            type="text"
+        <input
+          type="text"
             id="note-title"
             name="title"
             bind:value={formData.title}
-            placeholder="Note title..."
-            class="modal-title"
+          placeholder="Note title..."
+          class="modal-title"
             class:error={formErrors.title}
-            on:keydown={handleKeyDown}
+          on:keydown={handleKeyDown}
             aria-invalid={!!formErrors.title}
             aria-describedby={formErrors.title ? 'title-error' : undefined}
             maxlength="100"
@@ -314,19 +314,19 @@
       </div>
 
       <div class="input-group">
-        <textarea
+      <textarea
           id="note-content"
           name="content"
           bind:value={formData.content}
-          placeholder="Start writing..."
-          class="modal-content"
+        placeholder="Start writing..."
+        class="modal-content"
           class:error={formErrors.content}
-          on:keydown={handleKeyDown}
+        on:keydown={handleKeyDown}
           aria-invalid={!!formErrors.content}
           aria-describedby={formErrors.content ? 'content-error' : undefined}
           maxlength="10000"
-          rows="10"
-        />
+        rows="10"
+      />
         {#if formErrors.content}
           <div id="content-error" class="error-message">{formErrors.content}</div>
         {/if}
@@ -710,7 +710,7 @@
   }
 
   .selection-button {
-    padding: var(--spacing-xs) var(--spacing-md);
+      padding: var(--spacing-xs) var(--spacing-md);
     background: none;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);

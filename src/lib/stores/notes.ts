@@ -11,7 +11,7 @@ const initialState: NoteState = {
   activeTags: [],
   view: 'grid',
   sortBy: 'updated',
-  sortOrder: 'desc',
+  sortOrder: 'asc',
   showArchived: false,
   showDeleted: false,
   selectedNotes: new Set<string>()
@@ -336,9 +336,9 @@ export const filteredNotes = derived(
         const order = sortOrder === 'asc' ? 1 : -1;
         switch (sortBy) {
           case 'updated':
-            return order * (new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+            return order * (new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
           case 'created':
-            return order * (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            return order * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
           case 'title':
             return order * a.title.localeCompare(b.title);
           default:

@@ -85,24 +85,48 @@
   transition:fly={{ y: 20, duration: 200 }}
 >
   <div class="note-header">
-    {#if isEditing}
-      <input
-        bind:value={note.title}
-        placeholder="Enter title..."
-        class="note-title-input"
-      />
-    {:else if note.title}
-      <h3 class="note-title" class:empty={!note.title}>
-        {note.title}
-      </h3>
-    {/if}
-    {#if note.isPinned}
-      <span class="pin-indicator" title="Pinned">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M 8, 1 L 8, 15 M 4, 5 L 12, 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </span>
-    {/if}
+    <div class="note-title-container">
+      {#if isEditing}
+        <input
+          bind:value={note.title}
+          placeholder="Enter title..."
+          class="note-title-input"
+        />
+      {:else if note.title}
+        <h3 class="note-title" class:empty={!note.title}>
+          {note.title}
+        </h3>
+      {:else}
+        <h3 class="note-title empty">No title</h3>
+      {/if}
+    </div>
+    <div class="note-header-actions">
+      {#if note.isPinned}
+        <button
+          class="pin-indicator"
+          title="Unpin note"
+          on:click|stopPropagation={() => dispatch('action', 'togglePin')}
+        >
+          <span class="pin-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 8, 1 L 8, 15 M 4, 5 L 12, 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+        </button>
+      {:else}
+        <button
+          class="pin-indicator"
+          title="Pin note"
+          on:click|stopPropagation={() => dispatch('action', 'togglePin')}
+        >
+          <span class="pin-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 8, 1 L 8, 15 M 4, 5 L 12, 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+        </button>
+      {/if}
+    </div>
     <span style="display: none;">{note.id}</span>
   </div>
 
@@ -204,8 +228,8 @@
           </svg>
         </button>
       </div>
-    {:else if isHovered}
-      <div class="note-actions" transition:fade>
+    {:else}
+      <div class="note-actions normal-actions" class:visible={isHovered}>
         {#if $currentViewType !== 'trash'}
           <button
             class="action-button"
@@ -215,16 +239,6 @@
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M8 1.5C4.41015 1.5 1.5 4.41015 1.5 8C1.5 11.5899 4.41015 14.5 8 14.5C11.5899 14.5 14.5 11.5899 14.5 8C14.5 4.41015 11.5899 1.5 8 1.5ZM8 13C5.23858 13 3 10.7614 3 8C3 5.23858 5.23858 3 8 3C10.7614 3 13 5.23858 13 8C13 10.7614 10.7614 13 8 13Z" fill="currentColor"/>
               <path d="M8 5.5C6.61929 5.5 5.5 6.61929 5.5 8C5.5 9.38071 6.61929 10.5 8 10.5C9.38071 10.5 10.5 9.38071 10.5 8C10.5 6.61929 9.38071 5.5 8 5.5Z" fill="currentColor"/>
-            </svg>
-          </button>
-          <button
-            class="action-button"
-            title={note.isPinned ? 'Unpin' : 'Pin'}
-            on:click={() => dispatch('pin')}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8.5 1.5C8.5 1.22386 8.27614 1 8 1C7.72386 1 7.5 1.22386 7.5 1.5V14.5C7.5 14.7761 7.72386 15 8 15C8.27614 15 8.5 14.7761 8.5 14.5V1.5Z" fill="currentColor"/>
-              <path d="M4 5C4 4.44772 4.44772 4 5 4H11C11.5523 4 12 4.44772 12 5C12 5.55228 11.5523 6 11 6H5C4.44772 6 4 5.55228 4 5Z" fill="currentColor"/>
             </svg>
           </button>
           <button
@@ -323,10 +337,14 @@
   }
 
   .note-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: 1fr auto;
     gap: var(--spacing-sm);
+    align-items: flex-start;
+  }
+
+  .note-title-container {
+    min-height: 1.5em;
   }
 
   .note-title {
@@ -335,7 +353,6 @@
     font-weight: 500;
     color: var(--color-text-primary);
     margin: 0;
-    flex: 1;
   }
 
   .note-title.empty {
@@ -343,9 +360,45 @@
     font-style: italic;
   }
 
+  .note-header-actions {
+    display: flex;
+    align-items: flex-start;
+  }
+
   .pin-indicator {
     font-size: 0.9rem;
     opacity: 0.8;
+    color: var(--color-text-muted);
+    transition: all var(--transition-fast);
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pin-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-fast);
+  }
+
+  .pin-indicator:hover {
+    background-color: var(--color-bg-tertiary);
+    opacity: 1;
+  }
+
+  .note-card.pinned .pin-icon {
+    transform: rotate(45deg);
+  }
+
+  .note-card.pinned .pin-indicator {
+    color: var(--color-accent-yellow);
+    opacity: 1;
   }
 
   .note-content {
@@ -559,14 +612,16 @@
   }
 
   .trash-actions,
-  .archived-actions {
+  .archived-actions,
+  .normal-actions {
     opacity: 0;
     visibility: visible;
     transition: opacity var(--transition-fast);
   }
 
   .trash-actions.visible,
-  .archived-actions.visible {
+  .archived-actions.visible,
+  .normal-actions.visible {
     opacity: 1;
   }
 </style> 

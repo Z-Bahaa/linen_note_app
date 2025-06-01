@@ -28,6 +28,9 @@
       case 'toggleArchive':
         notesStore.toggleArchive(note.id);
         break;
+      case 'togglePin':
+        notesStore.togglePin(note.id);
+        break;
       case 'select':
         notesStore.toggleNoteSelection(note.id);
         break;

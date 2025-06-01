@@ -3,11 +3,14 @@
   import { notesStore, currentViewType } from '$lib/stores/notes';
   import Toolbar from '$lib/components/Toolbar.svelte';
   import NotesGrid from '$lib/components/NotesGrid.svelte';
+  import ConfirmModal from '$lib/components/ConfirmModal.svelte';
   import type { Note } from '$lib/types';
 
   let showNewNoteModal = false;
   let isSubmitting = false;
   let formError = '';
+  let showConfirmModal = false;
+  let confirmAction: 'deleteSelected' | 'restoreSelected' | 'unarchiveSelected' | 'moveToTrash' | null = null;
   
   // Form data
   let formData = {
@@ -102,33 +105,68 @@
   }
 
   function handleDeleteSelected() {
-    const selectedCount = $notesStore.selectedNotes.size;
-    const message = selectedCount === 0 
-      ? 'Are you sure you want to permanently delete all notes in trash? This action cannot be undone.'
-      : `Are you sure you want to permanently delete ${selectedCount} selected note${selectedCount === 1 ? '' : 's'}? This action cannot be undone.`;
-    
-    if (confirm(message)) {
-      if (selectedCount === 0) {
-        notesStore.permanentlyDeleteAllTrash();
-      } else {
-        notesStore.permanentlyDeleteSelected();
-      }
-    }
+    confirmAction = 'deleteSelected';
+    showConfirmModal = true;
   }
 
   function handleRestoreSelected() {
-    const selectedCount = $notesStore.selectedNotes.size;
-    const message = selectedCount === 0 
-      ? 'Are you sure you want to restore all notes from trash?'
-      : `Are you sure you want to restore ${selectedCount} selected note${selectedCount === 1 ? '' : 's'}?`;
+    confirmAction = 'restoreSelected';
+    showConfirmModal = true;
+  }
+
+  function handleUnarchiveSelected() {
+    confirmAction = 'unarchiveSelected';
+    showConfirmModal = true;
+  }
+
+  function handleMoveToTrash() {
+    confirmAction = 'moveToTrash';
+    showConfirmModal = true;
+  }
+
+  function handleConfirm() {
+    if (!confirmAction) return;
     
-    if (confirm(message)) {
-      if (selectedCount === 0) {
-        notesStore.restoreAllFromTrash();
-      } else {
-        notesStore.restoreSelected();
-      }
+    const selectedCount = $notesStore.selectedNotes.size;
+    
+    switch (confirmAction) {
+      case 'deleteSelected':
+        if (selectedCount === 0) {
+          notesStore.permanentlyDeleteAllTrash();
+        } else {
+          notesStore.permanentlyDeleteSelected();
+        }
+        break;
+      case 'restoreSelected':
+        if (selectedCount === 0) {
+          notesStore.restoreAllFromTrash();
+        } else {
+          notesStore.restoreSelected();
+        }
+        break;
+      case 'unarchiveSelected':
+        if (selectedCount === 0) {
+          notesStore.unarchiveAll();
+        } else {
+          notesStore.unarchiveSelected();
+        }
+        break;
+      case 'moveToTrash':
+        if (selectedCount === 0) {
+          notesStore.moveAllToTrash();
+        } else {
+          notesStore.moveSelectedToTrash();
+        }
+        break;
     }
+    
+    confirmAction = null;
+    showConfirmModal = false;
+  }
+
+  function handleCancel() {
+    confirmAction = null;
+    showConfirmModal = false;
   }
 
   function handleSelectAll() {
@@ -137,36 +175,6 @@
 
   function handleClearSelection() {
     notesStore.clearSelection();
-  }
-
-  function handleUnarchiveSelected() {
-    const selectedCount = $notesStore.selectedNotes.size;
-    const message = selectedCount === 0 
-      ? 'Are you sure you want to unarchive all notes?'
-      : `Are you sure you want to unarchive ${selectedCount} selected note${selectedCount === 1 ? '' : 's'}?`;
-    
-    if (confirm(message)) {
-      if (selectedCount === 0) {
-        notesStore.unarchiveAll();
-      } else {
-        notesStore.unarchiveSelected();
-      }
-    }
-  }
-
-  function handleMoveToTrash() {
-    const selectedCount = $notesStore.selectedNotes.size;
-    const message = selectedCount === 0 
-      ? 'Are you sure you want to move all archived notes to trash?'
-      : `Are you sure you want to move ${selectedCount} selected note${selectedCount === 1 ? '' : 's'} to trash?`;
-    
-    if (confirm(message)) {
-      if (selectedCount === 0) {
-        notesStore.moveAllToTrash();
-      } else {
-        notesStore.moveSelectedToTrash();
-      }
-    }
   }
 
   // Focus title input when modal opens
@@ -349,6 +357,60 @@
     </form>
   </div>
 {/if}
+
+<ConfirmModal
+  show={showConfirmModal}
+  title={
+    confirmAction === 'deleteSelected'
+      ? ($notesStore.selectedNotes.size === 0 ? 'Delete All' : 'Delete Selected')
+      : confirmAction === 'restoreSelected'
+      ? ($notesStore.selectedNotes.size === 0 ? 'Restore All' : 'Restore Selected')
+      : confirmAction === 'unarchiveSelected'
+      ? ($notesStore.selectedNotes.size === 0 ? 'Unarchive All' : 'Unarchive Selected')
+      : confirmAction === 'moveToTrash'
+      ? ($notesStore.selectedNotes.size === 0 ? 'Move All to Trash' : 'Move Selected to Trash')
+      : 'Confirm Action'
+  }
+  message={
+    confirmAction === 'deleteSelected'
+      ? ($notesStore.selectedNotes.size === 0
+        ? 'Are you sure you want to permanently delete all notes in trash? This action cannot be undone.'
+        : `Are you sure you want to permanently delete ${$notesStore.selectedNotes.size} selected note${$notesStore.selectedNotes.size === 1 ? '' : 's'}? This action cannot be undone.`)
+      : confirmAction === 'restoreSelected'
+      ? ($notesStore.selectedNotes.size === 0
+        ? 'Are you sure you want to restore all notes from trash?'
+        : `Are you sure you want to restore ${$notesStore.selectedNotes.size} selected note${$notesStore.selectedNotes.size === 1 ? '' : 's'}?`)
+      : confirmAction === 'unarchiveSelected'
+      ? ($notesStore.selectedNotes.size === 0
+        ? 'Are you sure you want to unarchive all notes?'
+        : `Are you sure you want to unarchive ${$notesStore.selectedNotes.size} selected note${$notesStore.selectedNotes.size === 1 ? '' : 's'}?`)
+      : confirmAction === 'moveToTrash'
+      ? ($notesStore.selectedNotes.size === 0
+        ? 'Are you sure you want to move all archived notes to trash?'
+        : `Are you sure you want to move ${$notesStore.selectedNotes.size} selected note${$notesStore.selectedNotes.size === 1 ? '' : 's'} to trash?`)
+      : 'Are you sure you want to proceed?'
+  }
+  confirmText={
+    confirmAction === 'deleteSelected'
+      ? ($notesStore.selectedNotes.size === 0 ? 'Delete All' : 'Delete Selected')
+      : confirmAction === 'restoreSelected'
+      ? ($notesStore.selectedNotes.size === 0 ? 'Restore All' : 'Restore Selected')
+      : confirmAction === 'unarchiveSelected'
+      ? ($notesStore.selectedNotes.size === 0 ? 'Unarchive All' : 'Unarchive Selected')
+      : confirmAction === 'moveToTrash'
+      ? ($notesStore.selectedNotes.size === 0 ? 'Move All to Trash' : 'Move Selected to Trash')
+      : 'Confirm'
+  }
+  type={
+    confirmAction === 'deleteSelected'
+      ? 'danger'
+      : confirmAction === 'restoreSelected'
+      ? 'info'
+      : 'warning'
+  }
+  on:confirm={handleConfirm}
+  on:cancel={handleCancel}
+/>
 
 <style>
   main {

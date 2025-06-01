@@ -1,10 +1,14 @@
 <script lang="ts">
   import { notesStore, filteredNotes, currentViewType } from '$lib/stores/notes';
   import Note from './Note.svelte';
+  import ConfirmModal from './ConfirmModal.svelte';
   import { fade } from 'svelte/transition';
   import type { Note as NoteType } from '$lib/types';
 
   let editingNoteId: string | null = null;
+  let showConfirmModal = false;
+  let noteToConfirm: NoteType | null = null;
+  let confirmAction: string | null = null;
 
   $: pinnedNotes = $filteredNotes.filter(note => note.isPinned);
   $: unpinnedNotes = $filteredNotes.filter(note => !note.isPinned);
@@ -12,21 +16,19 @@
   function handleNoteAction(action: string, note: NoteType) {
     switch (action) {
       case 'delete':
-        if ($currentViewType === 'trash') {
-          if (confirm('Are you sure you want to permanently delete this note?')) {
-            notesStore.permanentlyDeleteNote(note.id);
-          }
-        } else {
-          if (confirm('Move this note to trash?')) {
-            notesStore.deleteNote(note.id);
-          }
-        }
+        noteToConfirm = note;
+        confirmAction = 'delete';
+        showConfirmModal = true;
         break;
       case 'restore':
-        notesStore.restoreNote(note.id);
+        noteToConfirm = note;
+        confirmAction = 'restore';
+        showConfirmModal = true;
         break;
       case 'archive':
-        notesStore.archiveNote(note.id);
+        noteToConfirm = note;
+        confirmAction = 'archive';
+        showConfirmModal = true;
         break;
       case 'toggleArchive':
         notesStore.toggleArchive(note.id);
@@ -38,6 +40,36 @@
         notesStore.toggleNoteSelection(note.id);
         break;
     }
+  }
+
+  function handleConfirm() {
+    if (!noteToConfirm || !confirmAction) return;
+    
+    switch (confirmAction) {
+      case 'delete':
+        if ($currentViewType === 'trash') {
+          notesStore.permanentlyDeleteNote(noteToConfirm.id);
+        } else {
+          notesStore.deleteNote(noteToConfirm.id);
+        }
+        break;
+      case 'restore':
+        notesStore.restoreNote(noteToConfirm.id);
+        break;
+      case 'archive':
+        notesStore.archiveNote(noteToConfirm.id);
+        break;
+    }
+    
+    noteToConfirm = null;
+    confirmAction = null;
+    showConfirmModal = false;
+  }
+
+  function handleCancel() {
+    noteToConfirm = null;
+    confirmAction = null;
+    showConfirmModal = false;
   }
 
   function handleColorChange(note: NoteType, color: NoteType['color']) {
@@ -155,6 +187,48 @@
     </p>
   </div>
 {/if}
+
+<ConfirmModal
+  show={showConfirmModal}
+  title={
+    confirmAction === 'delete' 
+      ? ($currentViewType === 'trash' ? 'Delete Note' : 'Move to Trash')
+      : confirmAction === 'restore'
+      ? 'Restore Note'
+      : confirmAction === 'archive'
+      ? 'Archive Note'
+      : 'Confirm Action'
+  }
+  message={
+    confirmAction === 'delete'
+      ? ($currentViewType === 'trash' 
+        ? 'Are you sure you want to permanently delete this note? This action cannot be undone.'
+        : 'Move this note to trash?')
+      : confirmAction === 'restore'
+      ? 'Restore this note to active notes?'
+      : confirmAction === 'archive'
+      ? 'Move this note to archive?'
+      : 'Are you sure you want to proceed?'
+  }
+  confirmText={
+    confirmAction === 'delete'
+      ? ($currentViewType === 'trash' ? 'Delete Permanently' : 'Move to Trash')
+      : confirmAction === 'restore'
+      ? 'Restore'
+      : confirmAction === 'archive'
+      ? 'Archive'
+      : 'Confirm'
+  }
+  type={
+    confirmAction === 'delete' 
+      ? 'danger' 
+      : confirmAction === 'restore'
+      ? 'info'
+      : 'warning'
+  }
+  on:confirm={handleConfirm}
+  on:cancel={handleCancel}
+/>
 
 <style>
   .notes-container {

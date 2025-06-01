@@ -232,16 +232,30 @@
     {:else}
       <div class="note-actions normal-actions" class:visible={isHovered}>
         {#if $currentViewType !== 'trash'}
-          <button
-            class="action-button"
-            title="Change color"
-            on:click={() => (showActions = !showActions)}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M8 1.5C4.41015 1.5 1.5 4.41015 1.5 8C1.5 11.5899 4.41015 14.5 8 14.5C11.5899 14.5 14.5 11.5899 14.5 8C14.5 4.41015 11.5899 1.5 8 1.5ZM8 13C5.23858 13 3 10.7614 3 8C3 5.23858 5.23858 3 8 3C10.7614 3 13 5.23858 13 8C13 10.7614 10.7614 13 8 13Z" fill="currentColor"/>
-              <path d="M8 5.5C6.61929 5.5 5.5 6.61929 5.5 8C5.5 9.38071 6.61929 10.5 8 10.5C9.38071 10.5 10.5 9.38071 10.5 8C10.5 6.61929 9.38071 5.5 8 5.5Z" fill="currentColor"/>
-            </svg>
-          </button>
+          <div class="color-picker-container">
+            <button
+              class="action-button"
+              title="Change color"
+              on:click={() => (showActions = !showActions)}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 1.5C4.41015 1.5 1.5 4.41015 1.5 8C1.5 11.5899 4.41015 14.5 8 14.5C11.5899 14.5 14.5 11.5899 14.5 8C14.5 4.41015 11.5899 1.5 8 1.5ZM8 13C5.23858 13 3 10.7614 3 8C3 5.23858 5.23858 3 8 3C10.7614 3 13 5.23858 13 8C13 10.7614 10.7614 13 8 13Z" fill="currentColor"/>
+                <path d="M8 5.5C6.61929 5.5 5.5 6.61929 5.5 8C5.5 9.38071 6.61929 10.5 8 10.5C9.38071 10.5 10.5 9.38071 10.5 8C10.5 6.61929 9.38071 5.5 8 5.5Z" fill="currentColor"/>
+              </svg>
+            </button>
+            {#if showActions}
+              <div class="color-picker" transition:fade>
+                {#each Object.keys(colorClasses) as color}
+                  <button
+                    class="color-option {color}"
+                    class:active={note.color === color}
+                    on:click={() => handleColorChange(color as NoteColor)}
+                    title={color.charAt(0).toUpperCase() + color.slice(1)}
+                  />
+                {/each}
+              </div>
+            {/if}
+          </div>
           <button
             class="action-button"
             title={note.isArchived ? 'Unarchive' : 'Archive'}
@@ -277,19 +291,6 @@
       </div>
     {/if}
   </div>
-
-  {#if showActions && $currentViewType !== 'trash'}
-    <div class="color-picker" transition:fade>
-      {#each Object.keys(colorClasses) as color}
-        <button
-          class="color-option {color}"
-          class:active={note.color === color}
-          on:click={() => handleColorChange(color as NoteColor)}
-          title={color.charAt(0).toUpperCase() + color.slice(1)}
-        />
-      {/each}
-    </div>
-  {/if}
 
   {#if $currentViewType === 'trash' || $currentViewType === 'archived'}
     <div 
@@ -498,11 +499,15 @@
     color: var(--color-accent-red);
   }
 
+  .color-picker-container {
+    position: relative;
+  }
+
   .color-picker {
     position: absolute;
-    top: 100%;
+    bottom: 100%;
     right: 0;
-    margin-top: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
     background-color: var(--color-bg-elevated);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);

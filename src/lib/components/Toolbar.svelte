@@ -115,13 +115,13 @@
 
 <style>
   .toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--spacing-md);
     background-color: var(--color-bg-secondary);
-    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-md) 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
   }
 
   .toolbar-left,
@@ -229,7 +229,7 @@
 
   @media (max-width: 640px) {
     .toolbar {
-      padding: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
     }
 
     .toolbar-center {

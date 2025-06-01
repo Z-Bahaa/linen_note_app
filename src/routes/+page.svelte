@@ -117,19 +117,21 @@
 <main>
   <Toolbar on:newNote={handleNewNote} />
   
-  <div class="view-header">
-    <h1>
-      {#if $currentViewType === 'archived'}
-        Archived Notes
-      {:else if $currentViewType === 'trash'}
-        Trash
-      {:else}
-        All Notes
-      {/if}
-    </h1>
+  <div class="content-wrapper">
+    <div class="view-header">
+      <h1>
+        {#if $currentViewType === 'archived'}
+          Archived Notes
+        {:else if $currentViewType === 'trash'}
+          Trash
+        {:else}
+          All Notes
+        {/if}
+      </h1>
+    </div>
+    
+    <NotesGrid />
   </div>
-  
-  <NotesGrid />
 </main>
 
 {#if showNewNoteModal}
@@ -225,6 +227,25 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+  }
+
+  .content-wrapper {
+    padding: 0 40px;
+  }
+
+  @media (max-width: 640px) {
+    .content-wrapper {
+      padding: 0 var(--spacing-md);
+    }
+
+    .modal {
+      width: 95%;
+      max-height: 95vh;
+    }
+
+    .modal-button {
+      padding: var(--spacing-xs) var(--spacing-md);
+    }
   }
 
   .modal-backdrop {
@@ -355,17 +376,6 @@
   @keyframes slideUp {
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
-  }
-
-  @media (max-width: 640px) {
-    .modal {
-      width: 95%;
-      max-height: 95vh;
-    }
-
-    .modal-button {
-      padding: var(--spacing-xs) var(--spacing-md);
-    }
   }
 
   .input-group {

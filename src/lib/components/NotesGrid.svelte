@@ -6,6 +6,9 @@
 
   let editingNoteId: string | null = null;
 
+  $: pinnedNotes = $filteredNotes.filter(note => note.isPinned);
+  $: unpinnedNotes = $filteredNotes.filter(note => !note.isPinned);
+
   function handleNoteAction(action: string, note: NoteType) {
     switch (action) {
       case 'delete':
@@ -49,47 +52,109 @@
   }
 </script>
 
-<div class="notes-container" class:list-view={$notesStore.view === 'list'}>
-  {#each $filteredNotes as note (note.id)}
-    <div
-      class="note-wrapper"
-      class:pinned={note.isPinned}
-      class:selected={$notesStore.selectedNotes.has(note.id)}
-      transition:fade={{ duration: 200 }}
-    >
-      <Note
-        {note}
-        isEditing={editingNoteId === note.id}
-        on:edit={() => handleNoteAction('edit', note)}
-        on:delete={() => handleNoteAction('delete', note)}
-        on:archive={() => handleNoteAction('archive', note)}
-        on:pin={() => handleNoteAction('pin', note)}
-        on:restore={() => handleNoteAction('restore', note)}
-        on:colorChange={(e) => handleColorChange(note, e.detail)}
-        on:action={(e) => handleNoteAction(e.detail, note)}
-        isSelected={$notesStore.selectedNotes.has(note.id)}
-      />
-    </div>
-  {/each}
-
-  {#if $filteredNotes.length === 0}
-    <div class="empty-state" transition:fade>
-      <p class="empty-message">
-        {#if $notesStore.searchQuery}
-          No notes found matching your search.
-        {:else if $notesStore.activeTags.length > 0}
-          No notes found with the selected tags.
-        {:else if $currentViewType === 'trash'}
-          No notes in trash.
-        {:else if $currentViewType === 'archived'}
-          No archived notes.
-        {:else}
-          No notes yet. Create your first note!
-        {/if}
-      </p>
+{#if $currentViewType === 'active'}
+  {#if pinnedNotes.length > 0}
+    <div class="notes-section">
+      <h2 class="section-heading">Pinned</h2>
+      <div class="notes-container" class:list-view={$notesStore.view === 'list'}>
+        {#each pinnedNotes as note (note.id)}
+          <div
+            class="note-wrapper"
+            class:pinned={note.isPinned}
+            class:selected={$notesStore.selectedNotes.has(note.id)}
+            transition:fade={{ duration: 200 }}
+          >
+            <Note
+              {note}
+              isEditing={editingNoteId === note.id}
+              on:edit={() => handleNoteAction('edit', note)}
+              on:delete={() => handleNoteAction('delete', note)}
+              on:archive={() => handleNoteAction('archive', note)}
+              on:pin={() => handleNoteAction('pin', note)}
+              on:restore={() => handleNoteAction('restore', note)}
+              on:colorChange={(e) => handleColorChange(note, e.detail)}
+              on:action={(e) => handleNoteAction(e.detail, note)}
+              isSelected={$notesStore.selectedNotes.has(note.id)}
+            />
+          </div>
+        {/each}
+      </div>
     </div>
   {/if}
-</div>
+
+  {#if unpinnedNotes.length > 0}
+    <div class="notes-section">
+      {#if pinnedNotes.length > 0}
+        <h2 class="section-heading">Others</h2>
+      {/if}
+      <div class="notes-container" class:list-view={$notesStore.view === 'list'}>
+        {#each unpinnedNotes as note (note.id)}
+          <div
+            class="note-wrapper"
+            class:pinned={note.isPinned}
+            class:selected={$notesStore.selectedNotes.has(note.id)}
+            transition:fade={{ duration: 200 }}
+          >
+            <Note
+              {note}
+              isEditing={editingNoteId === note.id}
+              on:edit={() => handleNoteAction('edit', note)}
+              on:delete={() => handleNoteAction('delete', note)}
+              on:archive={() => handleNoteAction('archive', note)}
+              on:pin={() => handleNoteAction('pin', note)}
+              on:restore={() => handleNoteAction('restore', note)}
+              on:colorChange={(e) => handleColorChange(note, e.detail)}
+              on:action={(e) => handleNoteAction(e.detail, note)}
+              isSelected={$notesStore.selectedNotes.has(note.id)}
+            />
+          </div>
+        {/each}
+      </div>
+    </div>
+  {/if}
+{:else}
+  <div class="notes-container" class:list-view={$notesStore.view === 'list'}>
+    {#each $filteredNotes as note (note.id)}
+      <div
+        class="note-wrapper"
+        class:pinned={note.isPinned}
+        class:selected={$notesStore.selectedNotes.has(note.id)}
+        transition:fade={{ duration: 200 }}
+      >
+        <Note
+          {note}
+          isEditing={editingNoteId === note.id}
+          on:edit={() => handleNoteAction('edit', note)}
+          on:delete={() => handleNoteAction('delete', note)}
+          on:archive={() => handleNoteAction('archive', note)}
+          on:pin={() => handleNoteAction('pin', note)}
+          on:restore={() => handleNoteAction('restore', note)}
+          on:colorChange={(e) => handleColorChange(note, e.detail)}
+          on:action={(e) => handleNoteAction(e.detail, note)}
+          isSelected={$notesStore.selectedNotes.has(note.id)}
+        />
+      </div>
+    {/each}
+  </div>
+{/if}
+
+{#if $filteredNotes.length === 0}
+  <div class="empty-state" transition:fade>
+    <p class="empty-message">
+      {#if $notesStore.searchQuery}
+        No notes found matching your search.
+      {:else if $notesStore.activeTags.length > 0}
+        No notes found with the selected tags.
+      {:else if $currentViewType === 'trash'}
+        No notes in trash.
+      {:else if $currentViewType === 'archived'}
+        No archived notes.
+      {:else}
+        No notes yet. Create your first note!
+      {/if}
+    </p>
+  </div>
+{/if}
 
 <style>
   .notes-container {
@@ -147,6 +212,25 @@
     .notes-container {
       grid-template-columns: 1fr;
       padding: var(--spacing-sm);
+    }
+  }
+
+  .notes-section {
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .section-heading {
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    color: var(--color-text-muted);
+    margin: 0 0 var(--spacing-md) var(--spacing-md);
+    opacity: 0.8;
+  }
+
+  @media (max-width: 640px) {
+    .section-heading {
+      margin-left: var(--spacing-sm);
+      font-size: 1.1rem;
     }
   }
 </style> 

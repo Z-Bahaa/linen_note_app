@@ -2,7 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import type { Note, NoteColor } from '$lib/types';
   import { fade, fly } from 'svelte/transition';
-  import { notesStore } from '$lib/stores/notes';
+  import { notesStore, currentViewType } from '$lib/stores/notes';
 
   export let note: Note;
   export let isEditing = false;
@@ -12,6 +12,7 @@
     delete: void;
     archive: void;
     pin: void;
+    restore: void;
     colorChange: NoteColor;
   }>();
 
@@ -114,39 +115,55 @@
 
     {#if isHovered}
       <div class="note-actions" transition:fade>
-        <button
-          class="action-button"
-          title="Change color"
-          on:click={() => (showActions = !showActions)}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 1.5C4.41015 1.5 1.5 4.41015 1.5 8C1.5 11.5899 4.41015 14.5 8 14.5C11.5899 14.5 14.5 11.5899 14.5 8C14.5 4.41015 11.5899 1.5 8 1.5ZM8 13C5.23858 13 3 10.7614 3 8C3 5.23858 5.23858 3 8 3C10.7614 3 13 5.23858 13 8C13 10.7614 10.7614 13 8 13Z" fill="currentColor"/>
-            <path d="M8 5.5C6.61929 5.5 5.5 6.61929 5.5 8C5.5 9.38071 6.61929 10.5 8 10.5C9.38071 10.5 10.5 9.38071 10.5 8C10.5 6.61929 9.38071 5.5 8 5.5Z" fill="currentColor"/>
-          </svg>
-        </button>
-        <button
-          class="action-button"
-          title={note.isPinned ? 'Unpin' : 'Pin'}
-          on:click={() => dispatch('pin')}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8.5 1.5C8.5 1.22386 8.27614 1 8 1C7.72386 1 7.5 1.22386 7.5 1.5V14.5C7.5 14.7761 7.72386 15 8 15C8.27614 15 8.5 14.7761 8.5 14.5V1.5Z" fill="currentColor"/>
-            <path d="M4 5C4 4.44772 4.44772 4 5 4H11C11.5523 4 12 4.44772 12 5C12 5.55228 11.5523 6 11 6H5C4.44772 6 4 5.55228 4 5Z" fill="currentColor"/>
-          </svg>
-        </button>
-        <button
-          class="action-button"
-          title={note.isArchived ? 'Unarchive' : 'Archive'}
-          on:click={() => dispatch('archive')}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 3.5C2 2.67157 2.67157 2 3.5 2H12.5C13.3284 2 14 2.67157 14 3.5V4.5C14 4.77614 13.7761 5 13.5 5H2.5C2.22386 5 2 4.77614 2 4.5V3.5Z" fill="currentColor"/>
-            <path d="M2 6.5C2 5.67157 2.67157 5 3.5 5H12.5C13.3284 5 14 5.67157 14 6.5V12.5C14 13.3284 13.3284 14 12.5 14H3.5C2.67157 14 2 13.3284 2 12.5V6.5ZM3.5 6C3.22386 6 3 6.22386 3 6.5V12.5C3 12.7761 3.22386 13 3.5 13H12.5C12.7761 13 13 12.7761 13 12.5V6.5C13 6.22386 12.7761 6 12.5 6H3.5Z" fill="currentColor"/>
-          </svg>
-        </button>
+        {#if $currentViewType !== 'trash'}
+          <button
+            class="action-button"
+            title="Change color"
+            on:click={() => (showActions = !showActions)}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 1.5C4.41015 1.5 1.5 4.41015 1.5 8C1.5 11.5899 4.41015 14.5 8 14.5C11.5899 14.5 14.5 11.5899 14.5 8C14.5 4.41015 11.5899 1.5 8 1.5ZM8 13C5.23858 13 3 10.7614 3 8C3 5.23858 5.23858 3 8 3C10.7614 3 13 5.23858 13 8C13 10.7614 10.7614 13 8 13Z" fill="currentColor"/>
+              <path d="M8 5.5C6.61929 5.5 5.5 6.61929 5.5 8C5.5 9.38071 6.61929 10.5 8 10.5C9.38071 10.5 10.5 9.38071 10.5 8C10.5 6.61929 9.38071 5.5 8 5.5Z" fill="currentColor"/>
+            </svg>
+          </button>
+          <button
+            class="action-button"
+            title={note.isPinned ? 'Unpin' : 'Pin'}
+            on:click={() => dispatch('pin')}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8.5 1.5C8.5 1.22386 8.27614 1 8 1C7.72386 1 7.5 1.22386 7.5 1.5V14.5C7.5 14.7761 7.72386 15 8 15C8.27614 15 8.5 14.7761 8.5 14.5V1.5Z" fill="currentColor"/>
+              <path d="M4 5C4 4.44772 4.44772 4 5 4H11C11.5523 4 12 4.44772 12 5C12 5.55228 11.5523 6 11 6H5C4.44772 6 4 5.55228 4 5Z" fill="currentColor"/>
+            </svg>
+          </button>
+          <button
+            class="action-button"
+            title={note.isArchived ? 'Unarchive' : 'Archive'}
+            on:click={() => dispatch('archive')}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 3.5C2 2.67157 2.67157 2 3.5 2H12.5C13.3284 2 14 2.67157 14 3.5V4.5C14 4.77614 13.7761 5 13.5 5H2.5C2.22386 5 2 4.77614 2 4.5V3.5Z" fill="currentColor"/>
+              <path d="M2 6.5C2 5.67157 2.67157 5 3.5 5H12.5C13.3284 5 14 5.67157 14 6.5V12.5C14 13.3284 13.3284 14 12.5 14H3.5C2.67157 14 2 13.3284 2 12.5V6.5ZM3.5 6C3.22386 6 3 6.22386 3 6.5V12.5C3 12.7761 3.22386 13 3.5 13H12.5C12.7761 13 13 12.7761 13 12.5V6.5C13 6.22386 12.7761 6 12.5 6H3.5Z" fill="currentColor"/>
+            </svg>
+          </button>
+        {/if}
+        
+        {#if $currentViewType === 'trash'}
+          <button
+            class="action-button restore"
+            title="Restore note"
+            on:click={() => dispatch('restore')}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8ZM8 13C10.7614 13 13 10.7614 13 8C13 5.23858 10.7614 3 8 3C5.23858 3 3 5.23858 3 8C3 10.7614 5.23858 13 8 13Z" fill="currentColor"/>
+              <path d="M8 4.5C8 4.22386 7.77614 4 7.5 4C7.22386 4 7 4.22386 7 4.5V8.5C7 8.77614 7.22386 9 7.5 9H10.5C10.7761 9 11 8.77614 11 8.5C11 8.22386 10.7761 8 10.5 8H8V4.5Z" fill="currentColor"/>
+            </svg>
+          </button>
+        {/if}
+
         <button
           class="action-button delete"
-          title="Delete"
+          title={$currentViewType === 'trash' ? 'Delete permanently' : 'Move to trash'}
           on:click={() => dispatch('delete')}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -160,7 +177,7 @@
     {/if}
   </div>
 
-  {#if showActions}
+  {#if showActions && $currentViewType !== 'trash'}
     <div class="color-picker" transition:fade>
       {#each Object.keys(colorClasses) as color}
         <button
@@ -314,6 +331,10 @@
   .action-button:hover {
     background-color: var(--color-bg-tertiary);
     color: var(--color-text-primary);
+  }
+
+  .action-button.restore:hover {
+    color: var(--color-accent-green);
   }
 
   .action-button.delete:hover {

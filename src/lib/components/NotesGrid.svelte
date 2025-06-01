@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { notesStore, filteredNotes } from '$lib/stores/notes';
+  import { notesStore, filteredNotes, currentViewType } from '$lib/stores/notes';
   import Note from './Note.svelte';
   import { fade } from 'svelte/transition';
   import type { Note as NoteType } from '$lib/types';
@@ -12,8 +12,14 @@
         editingNoteId = note.id;
         break;
       case 'delete':
-        if (confirm('Are you sure you want to delete this note?')) {
-          notesStore.deleteNote(note.id);
+        if ($currentViewType === 'trash') {
+          if (confirm('Are you sure you want to permanently delete this note? This action cannot be undone.')) {
+            notesStore.permanentlyDeleteNote(note.id);
+          }
+        } else {
+          if (confirm('Move this note to trash?')) {
+            notesStore.deleteNote(note.id);
+          }
         }
         break;
       case 'archive':
@@ -25,6 +31,9 @@
         break;
       case 'pin':
         notesStore.togglePin(note.id);
+        break;
+      case 'restore':
+        notesStore.restoreNote(note.id);
         break;
     }
   }
@@ -55,6 +64,7 @@
         on:delete={() => handleNoteAction(note, 'delete')}
         on:archive={() => handleNoteAction(note, 'archive')}
         on:pin={() => handleNoteAction(note, 'pin')}
+        on:restore={() => handleNoteAction(note, 'restore')}
         on:colorChange={(e) => handleColorChange(note, e.detail)}
       />
     </div>
@@ -67,8 +77,10 @@
           No notes found matching your search.
         {:else if $notesStore.activeTags.length > 0}
           No notes found with the selected tags.
-        {:else if $notesStore.activeFolder}
-          No notes in this folder.
+        {:else if $currentViewType === 'trash'}
+          No notes in trash.
+        {:else if $currentViewType === 'archived'}
+          No archived notes.
         {:else}
           No notes yet. Create your first note!
         {/if}

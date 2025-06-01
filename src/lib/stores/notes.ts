@@ -1,5 +1,5 @@
 import { writable, derived } from 'svelte/store';
-import type { Note, NoteState, NoteFilter, Folder } from '$lib/types';
+import type { Note, NoteState, NoteFilter } from '$lib/types';
 import { browser } from '$app/environment';
 
 const STORAGE_KEY = 'vintage-notes-state';
@@ -7,7 +7,6 @@ const STORAGE_KEY = 'vintage-notes-state';
 // Initial state
 const initialState: NoteState = {
   notes: [],
-  folders: [],
   searchQuery: '',
   activeTags: [],
   view: 'grid',
@@ -75,6 +74,13 @@ function createNotesStore() {
       }));
     },
 
+    permanentlyDeleteNote: (id: string) => {
+      update(state => ({
+        ...state,
+        notes: state.notes.filter(note => note.id !== id)
+      }));
+    },
+
     restoreNote: (id: string) => {
       update(state => ({
         ...state,
@@ -119,44 +125,6 @@ function createNotesStore() {
       }));
     },
 
-    // Folder actions
-    addFolder: (folder: Omit<Folder, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const newFolder: Folder = {
-        ...folder,
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      update(state => ({
-        ...state,
-        folders: [...state.folders, newFolder]
-      }));
-    },
-
-    updateFolder: (id: string, updates: Partial<Folder>) => {
-      update(state => ({
-        ...state,
-        folders: state.folders.map(folder =>
-          folder.id === id
-            ? { ...folder, ...updates, updatedAt: new Date().toISOString() }
-            : folder
-        )
-      }));
-    },
-
-    deleteFolder: (id: string) => {
-      update(state => ({
-        ...state,
-        folders: state.folders.filter(folder => folder.id !== id),
-        notes: state.notes.map(note =>
-          note.folderId === id
-            ? { ...note, folderId: undefined, updatedAt: new Date().toISOString() }
-            : note
-        )
-      }));
-    },
-
     // UI state actions
     setSearchQuery: (query: string) => {
       update(state => ({ ...state, searchQuery: query }));
@@ -166,16 +134,28 @@ function createNotesStore() {
       update(state => ({ ...state, activeTags: tags }));
     },
 
-    setActiveFolder: (folderId?: string) => {
-      update(state => ({ ...state, activeFolder: folderId }));
-    },
-
     setView: (view: 'grid' | 'list') => {
       update(state => ({ ...state, view }));
     },
 
     setSort: (sortBy: 'updated' | 'created' | 'title', sortOrder: 'asc' | 'desc') => {
       update(state => ({ ...state, sortBy, sortOrder }));
+    },
+
+    toggleArchived: () => {
+      update(state => ({
+        ...state,
+        showArchived: !state.showArchived,
+        showDeleted: false // Ensure trash is hidden when showing archived
+      }));
+    },
+
+    toggleDeleted: () => {
+      update(state => ({
+        ...state,
+        showDeleted: !state.showDeleted,
+        showArchived: false // Ensure archived is hidden when showing trash
+      }));
     },
 
     // Reset store
@@ -189,13 +169,21 @@ export const notesStore = createNotesStore();
 export const filteredNotes = derived(
   [notesStore],
   ([$store]) => {
-    const { notes, searchQuery, activeTags, activeFolder, sortBy, sortOrder } = $store;
+    const { notes, searchQuery, activeTags, sortBy, sortOrder, showArchived, showDeleted } = $store;
     
     return notes
       .filter(note => {
-        if (note.isDeleted) return false;
-        if (note.isArchived && !$store.showArchived) return false;
-        if (activeFolder && note.folderId !== activeFolder) return false;
+        // First filter by view type (archived or trash)
+        if (showArchived) {
+          if (!note.isArchived || note.isDeleted) return false;
+        } else if (showDeleted) {
+          if (!note.isDeleted) return false;
+        } else {
+          // Normal view - show only active notes
+          if (note.isArchived || note.isDeleted) return false;
+        }
+
+        // Then apply search and tag filters
         if (searchQuery) {
           const searchLower = searchQuery.toLowerCase();
           const matchesSearch = 
@@ -222,5 +210,15 @@ export const filteredNotes = derived(
             return 0;
         }
       });
+  }
+);
+
+// Add a derived store for the current view type
+export const currentViewType = derived(
+  [notesStore],
+  ([$store]) => {
+    if ($store.showArchived) return 'archived';
+    if ($store.showDeleted) return 'trash';
+    return 'active';
   }
 ); 

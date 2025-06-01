@@ -11,21 +11,10 @@ export interface Note {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
-  folderId?: string;
-}
-
-export interface Folder {
-  id: string;
-  name: string;
-  color?: NoteColor;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface NoteState {
   notes: Note[];
-  folders: Folder[];
-  activeFolder?: string;
   searchQuery: string;
   activeTags: string[];
   view: 'grid' | 'list';
@@ -38,7 +27,6 @@ export interface NoteState {
 export type NoteFilter = {
   search?: string;
   tags?: string[];
-  folder?: string;
   showArchived?: boolean;
   showDeleted?: boolean;
   onlyPinned?: boolean;

@@ -5,7 +5,6 @@
 
   const dispatch = createEventDispatcher<{
     newNote: void;
-    newFolder: void;
   }>();
 
   let showSearch = false;
@@ -24,15 +23,11 @@
   }
 
   function toggleArchived() {
-    notesStore.update((state) => ({
-      showArchived: !state.showArchived
-    }));
+    notesStore.toggleArchived();
   }
 
   function toggleDeleted() {
-    notesStore.update((state) => ({
-      showDeleted: !state.showDeleted
-    }));
+    notesStore.toggleDeleted();
   }
 </script>
 
@@ -48,17 +43,6 @@
         <path d="M8.5 2.5C8.5 2.22386 8.72386 2 9 2H12.5C12.7761 2 13 2.22386 13 2.5V5C13 5.27614 12.7761 5.5 12.5 5.5C12.2239 5.5 12 5.27614 12 5V3H9.5C9.22386 3 9 2.77614 9 2.5C9 2.22386 8.77614 2 8.5 2Z" fill="currentColor"/>
       </svg>
       <span class="label">New Note</span>
-    </button>
-
-    <button
-      class="toolbar-button new-folder"
-      on:click={() => dispatch('newFolder')}
-      title="New Folder"
-    >
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2 4.5C2 3.67157 2.67157 3 3.5 3H6.5C6.77614 3 7 3.22386 7 3.5V4H12.5C13.3284 4 14 4.67157 14 5.5V11.5C14 12.3284 13.3284 13 12.5 13H3.5C2.67157 13 2 12.3284 2 11.5V4.5ZM3.5 4C3.22386 4 3 4.22386 3 4.5V11.5C3 11.7761 3.22386 12 3.5 12H12.5C12.7761 12 13 11.7761 13 11.5V5.5C13 5.22386 12.7761 5 12.5 5H6.5C6.22386 5 6 4.77614 6 4.5V4H3.5Z" fill="currentColor"/>
-      </svg>
-      <span class="label">New Folder</span>
     </button>
   </div>
 
@@ -87,21 +71,18 @@
       on:click={toggleView}
       title={$notesStore.view === 'grid' ? 'List View' : 'Grid View'}
     >
-      {#if $notesStore.view === 'grid'}
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2 3.5C2 2.67157 2.67157 2 3.5 2H6.5C7.32843 2 8 2.67157 8 3.5V6.5C8 7.32843 7.32843 8 6.5 8H3.5C2.67157 8 2 7.32843 2 6.5V3.5ZM3.5 3C3.22386 3 3 3.22386 3 3.5V6.5C3 6.77614 3.22386 7 3.5 7H6.5C6.77614 7 7 6.77614 7 6.5V3.5C7 3.22386 6.77614 3 6.5 3H3.5Z" fill="currentColor"/>
-          <path d="M9 3.5C9 2.67157 9.67157 2 10.5 2H13.5C14.3284 2 15 2.67157 15 3.5V6.5C15 7.32843 14.3284 8 13.5 8H10.5C9.67157 8 9 7.32843 9 6.5V3.5ZM10.5 3C10.2239 3 10 3.22386 10 3.5V6.5C10 6.77614 10.2239 7 10.5 7H13.5C13.7761 7 14 6.77614 14 6.5V3.5C14 3.22386 13.7761 3 13.5 3H10.5Z" fill="currentColor"/>
-          <path d="M2 9.5C2 8.67157 2.67157 8 3.5 8H6.5C7.32843 8 8 8.67157 8 9.5V12.5C8 13.3284 7.32843 14 6.5 14H3.5C2.67157 14 2 13.3284 2 12.5V9.5ZM3.5 9C3.22386 9 3 9.22386 3 9.5V12.5C3 12.7761 3.22386 13 3.5 13H6.5C6.77614 13 7 12.7761 7 12.5V9.5C7 9.22386 6.77614 9 6.5 9H3.5Z" fill="currentColor"/>
-          <path d="M9 9.5C9 8.67157 9.67157 8 10.5 8H13.5C14.3284 8 15 8.67157 15 9.5V12.5C15 13.3284 14.3284 14 13.5 14H10.5C9.67157 14 9 13.3284 9 12.5V9.5ZM10.5 9C10.2239 9 10 9.22386 10 9.5V12.5C10 12.7761 10.2239 13 10.5 13H13.5C13.7761 13 14 12.7761 14 12.5V9.5C14 9.22386 13.7761 9 13.5 9H10.5Z" fill="currentColor"/>
-        </svg>
-      {:else}
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2 3.5C2 2.67157 2.67157 2 3.5 2H12.5C13.3284 2 14 2.67157 14 3.5V4.5C14 4.77614 13.7761 5 13.5 5H2.5C2.22386 5 2 4.77614 2 4.5V3.5ZM3.5 3C3.22386 3 3 3.22386 3 3.5V4.5C3 4.77614 3.22386 5 3.5 5H12.5C12.7761 5 13 4.77614 13 4.5V3.5C13 3.22386 12.7761 3 12.5 3H3.5Z" fill="currentColor"/>
-          <path d="M2 6.5C2 5.67157 2.67157 5 3.5 5H12.5C13.3284 5 14 5.67157 14 6.5V7.5C14 7.77614 13.7761 8 13.5 8H2.5C2.22386 8 2 7.77614 2 7.5V6.5ZM3.5 6C3.22386 6 3 6.22386 3 6.5V7.5C3 7.77614 3.22386 8 3.5 8H12.5C12.7761 8 13 7.77614 13 7.5V6.5C13 6.22386 12.7761 6 12.5 6H3.5Z" fill="currentColor"/>
-          <path d="M2 9.5C2 8.67157 2.67157 8 3.5 8H12.5C13.3284 8 14 8.67157 14 9.5V10.5C14 10.7761 13.7761 11 13.5 11H2.5C2.22386 11 2 10.7761 2 10.5V9.5ZM3.5 9C3.22386 9 3 9.22386 3 9.5V10.5C3 10.7761 3.22386 11 3.5 11H12.5C12.7761 11 13 10.7761 13 10.5V9.5C13 9.22386 12.7761 9 12.5 9H3.5Z" fill="currentColor"/>
-          <path d="M2 12.5C2 11.6716 2.67157 11 3.5 11H12.5C13.3284 11 14 11.6716 14 12.5V13.5C14 13.7761 13.7761 14 13.5 14H2.5C2.22386 14 2 13.7761 2 13.5V12.5ZM3.5 12C3.22386 12 3 12.2239 3 12.5V13.5C3 13.7761 3.22386 14 3.5 14H12.5C12.7761 14 13 13.7761 13 13.5V12.5C13 12.2239 12.7761 12 12.5 12H3.5Z" fill="currentColor"/>
-        </svg>
-      {/if}
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {#if $notesStore.view === 'grid'}
+          <path d="M2 3.5C2 2.67157 2.67157 2 3.5 2H5.5C6.32843 2 7 2.67157 7 3.5V5.5C7 6.32843 6.32843 7 5.5 7H3.5C2.67157 7 2 6.32843 2 5.5V3.5Z" fill="currentColor"/>
+          <path d="M2 10.5C2 9.67157 2.67157 9 3.5 9H5.5C6.32843 9 7 9.67157 7 10.5V12.5C7 13.3284 6.32843 14 5.5 14H3.5C2.67157 14 2 13.3284 2 12.5V10.5Z" fill="currentColor"/>
+          <path d="M9 3.5C9 2.67157 9.67157 2 10.5 2H12.5C13.3284 2 14 2.67157 14 3.5V5.5C14 6.32843 13.3284 7 12.5 7H10.5C9.67157 7 9 6.32843 9 5.5V3.5Z" fill="currentColor"/>
+          <path d="M9 10.5C9 9.67157 9.67157 9 10.5 9H12.5C13.3284 9 14 9.67157 14 10.5V12.5C14 13.3284 13.3284 14 12.5 14H10.5C9.67157 14 9 13.3284 9 12.5V10.5Z" fill="currentColor"/>
+        {:else}
+          <path d="M2 3.5C2 2.67157 2.67157 2 3.5 2H12.5C13.3284 2 14 2.67157 14 3.5C14 4.32843 13.3284 5 12.5 5H3.5C2.67157 5 2 4.32843 2 3.5Z" fill="currentColor"/>
+          <path d="M2 8C2 7.17157 2.67157 6.5 3.5 6.5H12.5C13.3284 6.5 14 7.17157 14 8C14 8.82843 13.3284 9.5 12.5 9.5H3.5C2.67157 9.5 2 8.82843 2 8Z" fill="currentColor"/>
+          <path d="M2 12.5C2 11.6716 2.67157 11 3.5 11H12.5C13.3284 11 14 11.6716 14 12.5C14 13.3284 13.3284 14 12.5 14H3.5C2.67157 14 2 13.3284 2 12.5Z" fill="currentColor"/>
+        {/if}
+      </svg>
     </button>
 
     <button
@@ -120,7 +101,7 @@
       class="toolbar-button"
       class:active={$notesStore.showDeleted}
       on:click={toggleDeleted}
-      title={$notesStore.showDeleted ? 'Hide Trash' : 'Show Trash'}
+      title={$notesStore.showDeleted ? 'Hide Deleted' : 'Show Deleted'}
     >
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M6.5 2.5C6.5 2.22386 6.72386 2 7 2H9C9.27614 2 9.5 2.22386 9.5 2.5V3H6.5V2.5Z" fill="currentColor"/>

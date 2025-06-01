@@ -1,49 +1,112 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { notesStore } from '$lib/stores/notes';
+  import { notesStore, currentViewType } from '$lib/stores/notes';
   import Toolbar from '$lib/components/Toolbar.svelte';
   import NotesGrid from '$lib/components/NotesGrid.svelte';
   import type { Note } from '$lib/types';
 
   let showNewNoteModal = false;
-  let newNoteTitle = '';
-  let newNoteContent = '';
+  let isSubmitting = false;
+  let formError = '';
+  
+  // Form data
+  let formData = {
+    title: '',
+    content: '',
+    color: 'default' as Note['color'],
+    tags: [] as string[]
+  };
+
+  // Form validation
+  let formErrors = {
+    title: '',
+    content: ''
+  };
+
+  function validateForm() {
+    let isValid = true;
+    formErrors = {
+      title: '',
+      content: ''
+    };
+
+    if (formData.title.length > 100) {
+      formErrors.title = 'Title must be less than 100 characters';
+      isValid = false;
+    }
+
+    if (formData.content.length > 10000) {
+      formErrors.content = 'Content must be less than 10,000 characters';
+      isValid = false;
+    }
+
+    return isValid;
+  }
 
   function handleNewNote() {
+    // Reset form state
+    formData = {
+      title: '',
+      content: '',
+      color: 'default',
+      tags: []
+    };
+    formError = '';
+    formErrors = { title: '', content: '' };
     showNewNoteModal = true;
   }
 
-  function handleNewFolder() {
-    // TODO: Implement folder creation
-    alert('Folder creation coming soon!');
-  }
-
-  function createNote() {
-    // Only create a note if there's content
-    if (newNoteTitle.trim() || newNoteContent.trim()) {
-      notesStore.addNote({
-        title: newNoteTitle.trim(),
-        content: newNoteContent.trim(),
-        color: 'default',
-        tags: [],
-        isPinned: false,
-        isArchived: false,
-        isDeleted: false
-      });
-    }
+  async function handleSubmit() {
+    if (isSubmitting) return;
     
-    // Always reset and close the modal
-    newNoteTitle = '';
-    newNoteContent = '';
-    showNewNoteModal = false;
+    if (!validateForm()) {
+      formError = 'Please fix the errors before saving';
+      return;
+    }
+
+    try {
+      isSubmitting = true;
+      formError = '';
+
+      // Only create a note if there's content
+      if (formData.title.trim() || formData.content.trim()) {
+        notesStore.addNote({
+          title: formData.title.trim(),
+          content: formData.content.trim(),
+          color: formData.color,
+          tags: formData.tags,
+          isPinned: false,
+          isArchived: false,
+          isDeleted: false
+        });
+      }
+      
+      // Reset and close
+      showNewNoteModal = false;
+    } catch (error) {
+      formError = 'Failed to create note. Please try again.';
+      console.error('Error creating note:', error);
+    } finally {
+      isSubmitting = false;
+    }
   }
 
   function handleKeyDown(event: KeyboardEvent) {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-      createNote();
+      event.preventDefault();
+      handleSubmit();
     } else if (event.key === 'Escape') {
+      event.preventDefault();
       showNewNoteModal = false;
     }
+  }
+
+  // Focus title input when modal opens
+  $: if (showNewNoteModal) {
+    setTimeout(() => {
+      const titleInput = document.getElementById('note-title');
+      if (titleInput) titleInput.focus();
+    }, 100);
   }
 </script>
 
@@ -52,41 +115,108 @@
 </svelte:head>
 
 <main>
-  <Toolbar on:newNote={handleNewNote} on:newFolder={handleNewFolder} />
+  <Toolbar on:newNote={handleNewNote} />
+  
+  <div class="view-header">
+    <h1>
+      {#if $currentViewType === 'archived'}
+        Archived Notes
+      {:else if $currentViewType === 'trash'}
+        Trash
+      {:else}
+        All Notes
+      {/if}
+    </h1>
+  </div>
+  
   <NotesGrid />
 </main>
 
 {#if showNewNoteModal}
-  <div class="modal-backdrop" on:click={() => (showNewNoteModal = false)}>
-    <div class="modal" on:click|stopPropagation>
+  <div 
+    class="modal-backdrop" 
+    on:click={() => (showNewNoteModal = false)}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+  >
+    <form 
+      class="modal" 
+      on:click|stopPropagation
+      on:submit|preventDefault={handleSubmit}
+    >
       <div class="modal-header">
-        <input
-          type="text"
-          bind:value={newNoteTitle}
-          placeholder="Note title..."
-          class="modal-title"
-          on:keydown={handleKeyDown}
-        />
-        <button class="modal-close" on:click={() => (showNewNoteModal = false)}>
+        <h2 id="modal-title" class="visually-hidden">Create New Note</h2>
+        <div class="input-group">
+          <input
+            type="text"
+            id="note-title"
+            name="title"
+            bind:value={formData.title}
+            placeholder="Note title..."
+            class="modal-title"
+            class:error={formErrors.title}
+            on:keydown={handleKeyDown}
+            aria-invalid={!!formErrors.title}
+            aria-describedby={formErrors.title ? 'title-error' : undefined}
+            maxlength="100"
+          />
+          {#if formErrors.title}
+            <div id="title-error" class="error-message">{formErrors.title}</div>
+          {/if}
+        </div>
+        <button 
+          type="button"
+          class="modal-close" 
+          on:click={() => (showNewNoteModal = false)}
+          aria-label="Close modal"
+        >
           ✕
         </button>
       </div>
-      <textarea
-        bind:value={newNoteContent}
-        placeholder="Start writing..."
-        class="modal-content"
-        on:keydown={handleKeyDown}
-        rows="10"
-      />
+
+      <div class="input-group">
+        <textarea
+          id="note-content"
+          name="content"
+          bind:value={formData.content}
+          placeholder="Start writing..."
+          class="modal-content"
+          class:error={formErrors.content}
+          on:keydown={handleKeyDown}
+          aria-invalid={!!formErrors.content}
+          aria-describedby={formErrors.content ? 'content-error' : undefined}
+          maxlength="10000"
+          rows="10"
+        />
+        {#if formErrors.content}
+          <div id="content-error" class="error-message">{formErrors.content}</div>
+        {/if}
+      </div>
+
+      {#if formError}
+        <div class="form-error" role="alert">
+          {formError}
+        </div>
+      {/if}
+
       <div class="modal-footer">
-        <button class="modal-button cancel" on:click={() => (showNewNoteModal = false)}>
+        <button 
+          type="button"
+          class="modal-button cancel" 
+          on:click={() => (showNewNoteModal = false)}
+        >
           Cancel
         </button>
-        <button class="modal-button save" on:click={createNote}>
-          Save Note
+        <button 
+          type="submit"
+          class="modal-button save" 
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Saving...' : 'Save Note'}
         </button>
       </div>
-    </div>
+    </form>
   </div>
 {/if}
 
@@ -235,6 +365,74 @@
 
     .modal-button {
       padding: var(--spacing-xs) var(--spacing-md);
+    }
+  }
+
+  .input-group {
+    position: relative;
+    width: 100%;
+  }
+
+  .error-message {
+    position: absolute;
+    bottom: -1.5rem;
+    left: 0;
+    color: var(--color-accent-red);
+    font-size: 0.8rem;
+    font-family: var(--font-mono);
+  }
+
+  .form-error {
+    margin: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-sm);
+    background-color: var(--color-accent-red);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+  }
+
+  .modal-title.error,
+  .modal-content.error {
+    border-color: var(--color-accent-red);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .modal-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .view-header {
+    padding: var(--spacing-md);
+  }
+
+  .view-header h1 {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    color: var(--color-text-primary);
+    margin: 0;
+    opacity: 0.8;
+  }
+
+  @media (max-width: 640px) {
+    .view-header {
+      padding: var(--spacing-sm);
+    }
+
+    .view-header h1 {
+      font-size: 1.2rem;
     }
   }
 </style>

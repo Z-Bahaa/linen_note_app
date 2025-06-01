@@ -68,12 +68,12 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="modal-title"
-    transition:fade
+    transition:fade={{ duration: 200 }}
   >
     <div 
       class="modal" 
       on:click|stopPropagation
-      transition:fade
+      transition:fade={{ duration: 200 }}
       class:note-color-default={editedNote.color === 'default'}
       class:note-color-blue={editedNote.color === 'blue'}
       class:note-color-green={editedNote.color === 'green'}

@@ -170,6 +170,9 @@
   .notes-container.list-view {
     grid-template-columns: 1fr;
     max-width: 800px;
+    padding-top: calc(var(--spacing-md) / 2);
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .note-wrapper {
@@ -227,10 +230,30 @@
     opacity: 0.8;
   }
 
+  .notes-container.list-view + .section-heading,
+  .notes-section:has(.notes-container.list-view) .section-heading {
+    text-transform: lowercase;
+    font-size: 0.95rem;
+    text-align: start;
+    margin: 0 0 0 calc(50% - 400px + var(--spacing-md) + 16px);
+  }
+
+  @media (max-width: 800px) {
+    .notes-container.list-view + .section-heading,
+    .notes-section:has(.notes-container.list-view) .section-heading {
+      margin-left: calc(var(--spacing-md) + 10px);
+    }
+  }
+
   @media (max-width: 640px) {
     .section-heading {
-      margin-left: var(--spacing-sm);
       font-size: 1.1rem;
+      margin-left: var(--spacing-sm);
+    }
+
+    .notes-container.list-view + .section-heading,
+    .notes-section:has(.notes-container.list-view) .section-heading {
+      font-size: 0.9rem;
     }
   }
 </style> 

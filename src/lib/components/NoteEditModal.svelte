@@ -19,6 +19,10 @@
     editedNote = { ...note };
   }
 
+  $: if (!show) {
+    showColorPicker = false;
+  }
+
   const colorClasses: Record<NoteColor, string> = {
     default: 'note-color-default',
     blue: 'note-color-blue',
@@ -32,6 +36,7 @@
   function handleColorChange(color: NoteColor) {
     editedNote.color = color;
     dispatch('colorChange', color);
+    showColorPicker = false;
   }
 
   function formatDate(date: string) {
@@ -46,10 +51,12 @@
   }
 
   function handleSave() {
+    showColorPicker = false;
     dispatch('save', editedNote);
   }
 
   function handleCancel() {
+    showColorPicker = false;
     dispatch('cancel');
   }
 </script>
@@ -67,6 +74,13 @@
       class="modal" 
       on:click|stopPropagation
       transition:fade
+      class:note-color-default={editedNote.color === 'default'}
+      class:note-color-blue={editedNote.color === 'blue'}
+      class:note-color-green={editedNote.color === 'green'}
+      class:note-color-yellow={editedNote.color === 'yellow'}
+      class:note-color-red={editedNote.color === 'red'}
+      class:note-color-purple={editedNote.color === 'purple'}
+      class:note-color-gold={editedNote.color === 'gold'}
     >
       <div class="modal-header">
         <input
@@ -168,7 +182,7 @@
   }
 
   .modal {
-    background-color: var(--color-bg-secondary);
+    background-color: var(--note-color-default);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     width: 90%;
@@ -177,6 +191,14 @@
     display: flex;
     flex-direction: column;
   }
+
+  .modal.note-color-default { background-color: var(--note-color-default); }
+  .modal.note-color-blue { background-color: var(--note-color-blue); }
+  .modal.note-color-green { background-color: var(--note-color-green); }
+  .modal.note-color-yellow { background-color: var(--note-color-yellow); }
+  .modal.note-color-red { background-color: var(--note-color-red); }
+  .modal.note-color-purple { background-color: var(--note-color-purple); }
+  .modal.note-color-gold { background-color: var(--note-color-gold); }
 
   .modal-header {
     display: flex;

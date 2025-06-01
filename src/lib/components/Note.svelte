@@ -27,11 +27,12 @@
     green: 'note-color-green',
     yellow: 'note-color-yellow',
     red: 'note-color-red',
-    purple: 'note-color-purple'
+    purple: 'note-color-purple',
+    gold: 'note-color-gold'
   };
 
   function handleColorChange(color: NoteColor) {
-    dispatch('colorChange', color);
+    notesStore.updateNoteColor(note.id, color);
   }
 
   function formatDate(date: string) {
@@ -72,10 +73,11 @@
 
 {#if note.title || note.content}
 <div
-  class="note-card {colorClasses[note.color]}"
+  class="note-card"
   class:editing={isEditing}
   class:pinned={note.isPinned}
   class:selected={isSelected}
+  style="background-color: var(--note-color-{note.color})"
   on:mouseenter={() => (isHovered = true)}
   on:mouseleave={() => {
     isHovered = false;
@@ -317,7 +319,6 @@
     padding: var(--spacing-md);
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
-    background-color: var(--color-bg-elevated);
     transition: all var(--transition-normal);
     min-height: 200px;
     display: flex;
@@ -521,25 +522,30 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    border: 2px solid transparent;
+    border: 2px solid var(--color-bg-elevated);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
     cursor: pointer;
     transition: all var(--transition-fast);
   }
 
+  .color-option.default { background-color: var(--note-color-default); }
+  .color-option.blue { background-color: var(--note-color-blue); }
+  .color-option.green { background-color: var(--note-color-green); }
+  .color-option.yellow { background-color: var(--note-color-yellow); }
+  .color-option.red { background-color: var(--note-color-red); }
+  .color-option.purple { background-color: var(--note-color-purple); }
+  .color-option.gold { background-color: var(--note-color-gold); }
+
   .color-option:hover {
     transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
   }
 
   .color-option.active {
-    border-color: var(--color-text-primary);
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
   }
-
-  .note-color-default { background-color: var(--note-color-default); }
-  .note-color-blue { background-color: var(--note-color-blue); }
-  .note-color-green { background-color: var(--note-color-green); }
-  .note-color-yellow { background-color: var(--note-color-yellow); }
-  .note-color-red { background-color: var(--note-color-red); }
-  .note-color-purple { background-color: var(--note-color-purple); }
 
   .note-title-input {
     font-family: var(--font-mono);
@@ -646,5 +652,15 @@
 
   .update-date {
     color: var(--color-text-muted);
+  }
+
+  /* Remove the old color classes since we're using inline styles now */
+  .note-color-default,
+  .note-color-blue,
+  .note-color-green,
+  .note-color-yellow,
+  .note-color-red,
+  .note-color-purple {
+    /* These classes are no longer needed */
   }
 </style> 

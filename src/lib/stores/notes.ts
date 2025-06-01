@@ -65,6 +65,17 @@ function createNotesStore() {
       }));
     },
 
+    updateNoteColor: (id: string, color: Note['color']) => {
+      update(state => ({
+        ...state,
+        notes: state.notes.map(note => 
+          note.id === id 
+            ? { ...note, color }
+            : note
+        )
+      }));
+    },
+
     updateNote: (id: string, updates: Partial<Note>) => {
       update(state => ({
         ...state,
@@ -362,6 +373,7 @@ export const notesStoreActions = {
   subscribe: notesStore.subscribe,
   addNote: notesStore.addNote,
   updateNote: notesStore.updateNote,
+  updateNoteColor: notesStore.updateNoteColor,
   deleteNote: notesStore.deleteNote,
   permanentlyDeleteNote: notesStore.permanentlyDeleteNote,
   permanentlyDeleteAllTrash: notesStore.permanentlyDeleteAllTrash,

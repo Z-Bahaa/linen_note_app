@@ -156,9 +156,10 @@
           <span class="archive-date">{formatDate(archivedAt)}</span>
         </div>
       {:else}
-        <span class="note-date" title="Last updated">
-          {formatDate(note.updatedAt)}
-        </span>
+        <div class="update-info">
+          <span class="update-label">Updated at</span>
+          <span class="update-date">{formatDate(note.updatedAt)}</span>
+        </div>
       {/if}
       {#if note.tags.length > 0}
         <div class="note-tags">
@@ -623,5 +624,22 @@
   .archived-actions.visible,
   .normal-actions.visible {
     opacity: 1;
+  }
+
+  .update-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+
+  .update-label {
+    color: var(--color-text-muted);
+    opacity: 0.8;
+  }
+
+  .update-date {
+    color: var(--color-text-muted);
   }
 </style> 

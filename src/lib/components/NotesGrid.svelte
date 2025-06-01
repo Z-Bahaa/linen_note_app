@@ -88,7 +88,7 @@
 <style>
   .notes-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--spacing-md);
     padding: var(--spacing-md);
     width: 100%;
@@ -129,6 +129,12 @@
     color: var(--color-text-muted);
     font-family: var(--font-mono);
     font-size: 1.1rem;
+  }
+
+  @media (max-width: 1024px) {
+    .notes-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 
   @media (max-width: 640px) {

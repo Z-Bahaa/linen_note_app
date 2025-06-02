@@ -54,24 +54,24 @@
     if (!formData.title.trim() && !formData.content.trim() && formData.tags.length === 0) {
       showNewNoteModal = false;
       return;
-    }
+  }
 
     try {
       isSubmitting = true;
       formError = '';
 
       notesStore.addNote({
-        title: formData.title.trim(),
-        content: formData.content.trim(),
-        color: formData.color,
-        tags: formData.tags,
+          title: formData.title.trim(),
+          content: formData.content.trim(),
+          color: formData.color,
+          tags: formData.tags,
         isPinned: false,
         isArchived: false,
         isDeleted: false
       });
     
       // Reset and close
-      showNewNoteModal = false;
+    showNewNoteModal = false;
     } catch (error) {
       formError = 'Failed to create note. Please try again.';
       console.error('Error creating note:', error);
@@ -216,6 +216,9 @@
             {:else}
               All Notes
             {/if}
+            {#if $notesStore.activeTags.length > 0}
+              <span class="tagged-with"> tagged with #{ $notesStore.activeTags[0] }</span>
+            {/if}
           </h1>
           {#if $currentViewType === 'trash' || $currentViewType === 'archived'}
             <div class="selection-actions">
@@ -304,14 +307,14 @@
       <div class="modal-header">
         <h2 id="modal-title" class="visually-hidden">Create New Note</h2>
         <div class="input-group">
-          <input
-            type="text"
+        <input
+          type="text"
             id="note-title"
             name="title"
             bind:value={formData.title}
-            placeholder="Note title..."
-            class="modal-title"
-            on:keydown={handleKeyDown}
+          placeholder="Note title..."
+          class="modal-title"
+          on:keydown={handleKeyDown}
             maxlength="100"
           />
         </div>
@@ -326,16 +329,16 @@
       </div>
 
       <div class="modal-content">
-        <textarea
+      <textarea
           id="note-content"
           name="content"
           bind:value={formData.content}
-          placeholder="Start writing..."
-          class="modal-content"
-          on:keydown={handleKeyDown}
+        placeholder="Start writing..."
+        class="modal-content"
+        on:keydown={handleKeyDown}
           maxlength="10000"
-          rows="10"
-        />
+        rows="10"
+      />
       </div>
 
       <div class="modal-actions">
@@ -369,7 +372,7 @@
                 />
               {/each}
             </div>
-          {/if}
+        {/if}
         </div>
       </div>
 
@@ -865,5 +868,13 @@
   .color-option.active {
     border-color: rgba(255, 255, 255, 0.9);
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
+  }
+
+  .tagged-with {
+    font-size: 1rem;
+    color: var(--color-accent-blue);
+    font-weight: 400;
+    margin-left: 0.5em;
+    opacity: 0.8;
   }
 </style>

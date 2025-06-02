@@ -23,6 +23,7 @@ export interface NoteState {
   showArchived: boolean;
   showDeleted: boolean;
   selectedNotes: Set<string>;
+  tags: string[];
 }
 
 export type NoteFilter = {

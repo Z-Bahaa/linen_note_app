@@ -22,12 +22,6 @@
     tags: [] as string[]
   };
 
-  // Form validation
-  let formErrors = {
-    title: '',
-    content: ''
-  };
-
   let showColorPicker = false;
 
   const colorClasses: Record<Note['color'], string> = {
@@ -40,32 +34,6 @@
     gold: 'note-color-gold'
   };
 
-  function validateForm() {
-    let isValid = true;
-    formErrors = {
-      title: '',
-      content: ''
-    };
-
-    if (formData.title.length > 100) {
-      formErrors.title = 'Title must be less than 100 characters';
-      isValid = false;
-    }
-
-    if (formData.content.length > 10000) {
-      formErrors.content = 'Content must be less than 10,000 characters';
-      isValid = false;
-    }
-
-    // Require either title/content or tags
-    if (!formData.title.trim() && !formData.content.trim() && formData.tags.length === 0) {
-      formError = 'Please add a title, content, or at least one tag';
-      isValid = false;
-    }
-
-    return isValid;
-  }
-
   function handleNewNote() {
     // Reset form state
     formData = {
@@ -75,7 +43,6 @@
       tags: []
     };
     formError = '';
-    formErrors = { title: '', content: '' };
     showColorPicker = false;
     showNewNoteModal = true;
   }
@@ -83,30 +50,28 @@
   async function handleSubmit() {
     if (isSubmitting) return;
     
-    if (!validateForm()) {
-      formError = 'Please fix the errors before saving';
+    // If no content, just close the modal
+    if (!formData.title.trim() && !formData.content.trim() && formData.tags.length === 0) {
+      showNewNoteModal = false;
       return;
-  }
+    }
 
     try {
       isSubmitting = true;
       formError = '';
 
-    // Only create a note if there's content
-      if (formData.title.trim() || formData.content.trim()) {
       notesStore.addNote({
-          title: formData.title.trim(),
-          content: formData.content.trim(),
-          color: formData.color,
-          tags: formData.tags,
+        title: formData.title.trim(),
+        content: formData.content.trim(),
+        color: formData.color,
+        tags: formData.tags,
         isPinned: false,
         isArchived: false,
         isDeleted: false
       });
-    }
     
       // Reset and close
-    showNewNoteModal = false;
+      showNewNoteModal = false;
     } catch (error) {
       formError = 'Failed to create note. Please try again.';
       console.error('Error creating note:', error);
@@ -346,15 +311,9 @@
             bind:value={formData.title}
             placeholder="Note title..."
             class="modal-title"
-            class:error={formErrors.title}
             on:keydown={handleKeyDown}
-            aria-invalid={!!formErrors.title}
-            aria-describedby={formErrors.title ? 'title-error' : undefined}
             maxlength="100"
           />
-          {#if formErrors.title}
-            <div id="title-error" class="error-message">{formErrors.title}</div>
-          {/if}
         </div>
         <button 
           type="button"
@@ -373,16 +332,10 @@
           bind:value={formData.content}
           placeholder="Start writing..."
           class="modal-content"
-          class:error={formErrors.content}
           on:keydown={handleKeyDown}
-          aria-invalid={!!formErrors.content}
-          aria-describedby={formErrors.content ? 'content-error' : undefined}
           maxlength="10000"
           rows="10"
         />
-        {#if formErrors.content}
-          <div id="content-error" class="error-message">{formErrors.content}</div>
-        {/if}
       </div>
 
       <div class="modal-actions">

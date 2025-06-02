@@ -14,7 +14,8 @@ const initialState: NoteState = {
   sortOrder: 'asc',
   showArchived: false,
   showDeleted: false,
-  selectedNotes: new Set<string>()
+  selectedNotes: new Set<string>(),
+  tags: []
 };
 
 // Create the store
@@ -305,7 +306,58 @@ function createNotesStore() {
     },
 
     // Reset store
-    reset: () => set({ ...initialState, selectedNotes: new Set() })
+    reset: () => set({ ...initialState, selectedNotes: new Set() }),
+
+    addTag: (tag: string) => {
+      update(state => {
+        if (!state.tags.includes(tag)) {
+          return {
+            ...state,
+            tags: [...state.tags, tag].sort()
+          };
+        }
+        return state;
+      });
+    },
+
+    removeTag: (tag: string) => {
+      update(state => {
+        const newTags = state.tags.filter(t => t !== tag);
+        // Remove tag from all notes that have it
+        const updatedNotes = state.notes.map(note => ({
+          ...note,
+          tags: note.tags.filter(t => t !== tag)
+        }));
+        return {
+          ...state,
+          tags: newTags,
+          notes: updatedNotes
+        };
+      });
+    },
+
+    updateNoteTags: (noteId: string, tags: string[]) => {
+      update(state => {
+        const updatedNotes = state.notes.map(note => {
+          if (note.id === noteId) {
+            return { ...note, tags };
+          }
+          return note;
+        });
+        // Add any new tags to the global tags list
+        const newTags = [...state.tags];
+        tags.forEach(tag => {
+          if (!newTags.includes(tag)) {
+            newTags.push(tag);
+          }
+        });
+        return {
+          ...state,
+          notes: updatedNotes,
+          tags: newTags.sort()
+        };
+      });
+    }
   };
 }
 
@@ -401,5 +453,8 @@ export const notesStoreActions = {
   unarchiveSelected: notesStore.unarchiveSelected,
   moveSelectedToTrash: notesStore.moveSelectedToTrash,
   unarchiveAll: notesStore.unarchiveAll,
-  moveAllToTrash: notesStore.moveAllToTrash
+  moveAllToTrash: notesStore.moveAllToTrash,
+  addTag: notesStore.addTag,
+  removeTag: notesStore.removeTag,
+  updateNoteTags: notesStore.updateNoteTags
 }; 

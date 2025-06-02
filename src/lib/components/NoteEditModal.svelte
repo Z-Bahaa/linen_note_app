@@ -2,6 +2,8 @@
   import { createEventDispatcher } from 'svelte';
   import type { Note, NoteColor } from '$lib/types';
   import { fade } from 'svelte/transition';
+  import { notesStore } from '$lib/stores/notes';
+  import TagManager from './TagManager.svelte';
 
   export let show = false;
   export let note: Note;
@@ -21,6 +23,16 @@
 
   $: if (!show) {
     showColorPicker = false;
+  }
+
+  function handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      handleSave();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      handleCancel();
+    }
   }
 
   const colorClasses: Record<NoteColor, string> = {
@@ -58,6 +70,29 @@
   function handleCancel() {
     showColorPicker = false;
     dispatch('cancel');
+  }
+
+  function handleAddTag(event: CustomEvent<string>) {
+    const tag = event.detail;
+    if (!editedNote.tags.includes(tag)) {
+      editedNote.tags = [...editedNote.tags, tag];
+      notesStore.updateNoteTags(editedNote.id, editedNote.tags);
+    }
+  }
+
+  function handleRemoveTag(event: CustomEvent<string>) {
+    const tag = event.detail;
+    editedNote.tags = editedNote.tags.filter(t => t !== tag);
+    notesStore.updateNoteTags(editedNote.id, editedNote.tags);
+  }
+
+  function handleCreateTag(event: CustomEvent<string>) {
+    const tag = event.detail;
+    notesStore.addTag(tag);
+    if (!editedNote.tags.includes(tag)) {
+      editedNote.tags = [...editedNote.tags, tag];
+      notesStore.updateNoteTags(editedNote.id, editedNote.tags);
+    }
   }
 </script>
 
@@ -102,35 +137,50 @@
 
       <div class="modal-content">
         <textarea
+          id="note-content"
+          name="content"
           bind:value={editedNote.content}
           placeholder="Start writing..."
-          class="note-editor"
+          class="modal-content"
+          on:keydown={handleKeyDown}
+          maxlength="10000"
           rows="10"
         />
       </div>
 
-      <div class="color-picker-container">
-        <button
-          class="action-button"
-          title="Change color"
-          on:click={() => (showColorPicker = !showColorPicker)}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M11.47 2.22a.75.75 0 0 1 1.06 0c.403.403 1.999 2.127 3.499 4.362C17.509 8.785 19 11.635 19 14.25c0 2.524-.746 4.479-2.044 5.806C15.659 21.38 13.889 22 12 22c-1.89 0-3.659-.619-4.956-1.944C5.746 18.729 5 16.774 5 14.25c0-2.615 1.492-5.465 2.971-7.668 1.5-2.235 3.096-3.96 3.499-4.362ZM9.216 7.418C7.758 9.59 6.5 12.115 6.5 14.25c0 2.226.653 3.771 1.617 4.757.965.987 2.32 1.493 3.883 1.493 1.562 0 2.918-.506 3.883-1.493.964-.986 1.617-2.53 1.617-4.757 0-2.135-1.258-4.66-2.716-6.832A33.359 33.359 0 0 0 12 3.848a33.357 33.357 0 0 0-2.784 3.57Z" fill="currentColor"/>
-          </svg>
-        </button>
-        {#if showColorPicker}
-          <div class="color-picker" transition:fade>
-            {#each Object.keys(colorClasses) as color}
-              <button
-                class="color-option {color}"
-                class:active={editedNote.color === color}
-                on:click={() => handleColorChange(color as NoteColor)}
-                title={color.charAt(0).toUpperCase() + color.slice(1)}
-              />
-            {/each}
-          </div>
-        {/if}
+      <div class="modal-actions">
+        <TagManager
+          selectedTags={editedNote.tags}
+          on:addTag={handleAddTag}
+          on:removeTag={handleRemoveTag}
+          on:createTag={handleCreateTag}
+        />
+
+        <div class="color-picker-container">
+          <button
+            type="button"
+            class="action-button"
+            title="Change color"
+            on:click|stopPropagation={() => (showColorPicker = !showColorPicker)}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11.47 2.22a.75.75 0 0 1 1.06 0c.403.403 1.999 2.127 3.499 4.362C17.509 8.785 19 11.635 19 14.25c0 2.524-.746 4.479-2.044 5.806C15.659 21.38 13.889 22 12 22c-1.89 0-3.659-.619-4.956-1.944C5.746 18.729 5 16.774 5 14.25c0-2.615 1.492-5.465 2.971-7.668 1.5-2.235 3.096-3.96 3.499-4.362ZM9.216 7.418C7.758 9.59 6.5 12.115 6.5 14.25c0 2.226.653 3.771 1.617 4.757.965.987 2.32 1.493 3.883 1.493 1.562 0 2.918-.506 3.883-1.493.964-.986 1.617-2.53 1.617-4.757 0-2.135-1.258-4.66-2.716-6.832A33.359 33.359 0 0 0 12 3.848a33.357 33.357 0 0 0-2.784 3.57Z" fill="currentColor"/>
+            </svg>
+          </button>
+          {#if showColorPicker}
+            <div class="color-picker" transition:fade>
+              {#each Object.keys(colorClasses) as color}
+                <button
+                  type="button"
+                  class="color-option {color}"
+                  class:active={editedNote.color === color}
+                  on:click|stopPropagation={() => handleColorChange(color as Note['color'])}
+                  title={color.charAt(0).toUpperCase() + color.slice(1)}
+                />
+              {/each}
+            </div>
+          {/if}
+        </div>
       </div>
 
       <div class="modal-footer">
@@ -209,7 +259,7 @@
 
   .modal-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--spacing-sm);
     padding: var(--spacing-md);
     border-bottom: 1px solid var(--color-border);
@@ -223,6 +273,7 @@
     font-family: var(--font-mono);
     font-size: 1.2rem;
     padding: var(--spacing-xs) 0;
+    width: 100%;
   }
 
   .modal-title:focus {
@@ -247,8 +298,35 @@
 
   .modal-content {
     flex: 1;
-    padding: var(--spacing-md);
-    overflow-y: auto;
+    background: none;
+    border: none;
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    padding: var(--spacing-sm);
+    resize: none;
+    min-height: 200px;
+    width: 100%;
+  }
+
+  .modal-content:focus {
+    outline: none;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0 var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+  }
+
+  .color-picker-container {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    padding-right: var(--spacing-xs);
   }
 
   .note-editor {
@@ -331,14 +409,6 @@
   .action-button:hover {
     background-color: var(--color-bg-tertiary);
     color: var(--color-text-primary);
-  }
-
-  .color-picker-container {
-    position: relative;
-    padding: var(--spacing-md);
-    padding-bottom: 0;
-    display: flex;
-    justify-content: flex-end;
   }
 
   .color-picker {

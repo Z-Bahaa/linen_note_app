@@ -174,6 +174,14 @@
     {/if}
   </div>
 
+  {#if note.tags.length > 0}
+    <div class="note-tags">
+      {#each note.tags as tag}
+        <span class="note-tag">{tag}</span>
+      {/each}
+    </div>
+  {/if}
+
   <div class="note-footer">
     <div class="note-meta">
       {#if $currentViewType === 'trash' && deletedAt}
@@ -498,6 +506,8 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-top: 1px solid var(--color-border-light);
   }
 
   .note-tag {

@@ -183,7 +183,7 @@
   {#if note.tags.length > 0}
     <div class="note-tags">
       {#each note.tags as tag}
-        <span class="note-tag">{tag}</span>
+        <span class="note-tag">#{tag}</span>
       {/each}
     </div>
   {/if}
@@ -204,13 +204,6 @@
         <div class="update-info">
           <span class="update-label">Updated at</span>
           <span class="update-date">{formatDate(note.updatedAt)}</span>
-        </div>
-      {/if}
-      {#if note.tags.length > 0}
-        <div class="note-tags">
-          {#each note.tags as tag}
-            <span class="note-tag">#{tag}</span>
-          {/each}
         </div>
       {/if}
     </div>
@@ -513,8 +506,8 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-xs);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-top: 1px solid var(--color-border-light);
+    padding: 0 var(--spacing-sm) var(--spacing-xs);
+    margin-top: auto;
   }
 
   .note-tag {

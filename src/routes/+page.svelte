@@ -280,7 +280,7 @@
       </div>
     </div>
     
-  <NotesGrid />
+    <NotesGrid />
   </div>
 </main>
 
@@ -465,6 +465,8 @@
 
   .content-wrapper {
     padding: 0 40px;
+    overflow-y: auto;
+    height: calc(100vh - 61px);
   }
 
   @media (max-width: 640px) {

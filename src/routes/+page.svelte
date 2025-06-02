@@ -198,7 +198,7 @@
 </script>
 
 <svelte:head>
-  <title>Vintage Notes</title>
+  <title>Linen Notes</title>
 </svelte:head>
 
 <main>

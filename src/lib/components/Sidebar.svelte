@@ -103,12 +103,14 @@
             />
           {:else}
             <span class="tag-name" on:click={() => selectTag(tag)}>{tag}</span>
-            <button class="edit-tag-btn" title="Edit tag" on:click={() => startEditTag(tag)}>
-              ✎
-            </button>
-            <button class="delete-tag-btn" title="Delete tag" on:click={() => deleteTag(tag)}>
-              🗑
-            </button>
+            <span class="tag-actions">
+              <button class="edit-tag-btn" title="Edit tag" on:click={() => startEditTag(tag)}>
+                ✎
+              </button>
+              <button class="delete-tag-btn" title="Delete tag" on:click={() => deleteTag(tag)}>
+                🗑
+              </button>
+            </span>
           {/if}
         </div>
       {/each}
@@ -193,7 +195,7 @@
   .tag-list-item {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
     padding: 6px 20px;
     font-family: var(--font-mono);
     font-size: 1rem;
@@ -203,6 +205,7 @@
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
+    gap: 0;
   }
   .tag-list-item.active, .tag-list-item:hover {
     background-color: var(--color-bg-tertiary);
@@ -244,5 +247,10 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     padding: 2px 6px;
+  }
+  .tag-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
   }
 </style> 

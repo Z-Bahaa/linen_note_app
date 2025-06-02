@@ -367,9 +367,11 @@
     border: 1px solid var(--color-border);
     transition: all var(--transition-normal);
     min-height: 200px;
+    max-height: 300px;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
+    overflow: hidden;
   }
 
   .note-card:hover {
@@ -453,6 +455,7 @@
   .note-content {
     flex: 1;
     min-height: 100px;
+    overflow: hidden;
   }
 
   .note-text {
@@ -461,6 +464,10 @@
     line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    -webkit-box-orient: vertical;
   }
 
   .note-editor {

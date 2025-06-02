@@ -242,11 +242,21 @@
     flex: 1;
     font-family: var(--font-mono);
     font-size: 1rem;
-    color: var(--color-text-primary);
+    color: var(--color-text-secondary);
     background: var(--color-bg-tertiary);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     padding: 2px 6px;
+    width: 100%;
+    max-width: 100%;
+    box-shadow: none;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .edit-tag-input:focus {
+    border-color: var(--color-border-light);
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
   }
   .tag-actions {
     display: flex;

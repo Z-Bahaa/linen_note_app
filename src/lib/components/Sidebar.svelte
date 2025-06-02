@@ -13,6 +13,8 @@
   let editingTag: string | null = null;
   let editedTagName = '';
   let selectedTag: string | null = null;
+  let showNewTagInput = false;
+  let newTagName = '';
 
   $: tags = $notesStore.tags;
   $: activeTags = $notesStore.activeTags;
@@ -61,6 +63,25 @@
       selectAllNotes();
     }
   }
+
+  function startNewTag() {
+    showNewTagInput = true;
+    newTagName = '';
+  }
+
+  function saveNewTag() {
+    const tag = newTagName.trim();
+    if (tag && !$notesStore.tags.includes(tag)) {
+      notesStore.addTag(tag);
+    }
+    showNewTagInput = false;
+    newTagName = '';
+  }
+
+  function cancelNewTag() {
+    showNewTagInput = false;
+    newTagName = '';
+  }
 </script>
 
 <div 
@@ -101,6 +122,18 @@
               on:blur={() => saveEditTag(tag)}
               autofocus
             />
+            <span class="tag-actions">
+              <button class="save-tag-btn" title="Save tag" on:click={() => saveEditTag(tag)}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 8L7 11L12 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <button class="close-tag-btn" title="Cancel" on:mousedown|preventDefault={cancelEditTag}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </span>
           {:else}
             <span class="tag-name" on:click={() => selectTag(tag)}>{tag}</span>
             <span class="tag-actions">
@@ -114,6 +147,44 @@
           {/if}
         </div>
       {/each}
+      {#if showNewTagInput}
+        <div class="tag-list-item new-tag-item">
+          <input
+            class="edit-tag-input"
+            bind:value={newTagName}
+            on:keydown={(e) => {
+              if (e.key === 'Enter') saveNewTag();
+              if (e.key === 'Escape') cancelNewTag();
+            }}
+            on:blur={saveNewTag}
+            placeholder="New tag name..."
+            autofocus
+          />
+          <span class="tag-actions">
+            <button class="save-tag-btn" title="Save tag" on:click={saveNewTag}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 8L7 11L12 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="close-tag-btn" title="Cancel" on:mousedown|preventDefault={cancelNewTag}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </span>
+        </div>
+      {:else}
+        <div class="tag-list-item new-tag-item" on:click={startNewTag}>
+          <span class="tag-name">New Tag</span>
+          <span class="tag-actions">
+            <button class="add-tag-btn" title="Add tag">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 3.5V12.5M3.5 8H12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </span>
+        </div>
+      {/if}
     </nav>
   {/if}
 </div>
@@ -262,5 +333,42 @@
     display: flex;
     gap: 4px;
     margin-left: 8px;
+  }
+  .tag-list-item.new-tag-item {
+    color: var(--color-accent-blue);
+    font-style: italic;
+    cursor: pointer;
+  }
+  .add-tag-btn {
+    background: none;
+    border: none;
+    color: var(--color-accent-blue);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s, color 0.15s;
+  }
+  .add-tag-btn:hover {
+    background: var(--color-bg-tertiary);
+    color: var(--color-accent-blue);
+  }
+  .close-tag-btn, .save-tag-btn {
+    background: none;
+    border: none;
+    color: var(--color-accent-blue);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s, color 0.15s;
+  }
+  .close-tag-btn:hover {
+    color: var(--color-accent-red);
+    background: var(--color-bg-tertiary);
+  }
+  .save-tag-btn:hover {
+    color: var(--color-accent-green);
+    background: var(--color-bg-tertiary);
   }
 </style> 

@@ -280,7 +280,7 @@
       </div>
     </div>
     
-    <NotesGrid />
+  <NotesGrid />
   </div>
 </main>
 

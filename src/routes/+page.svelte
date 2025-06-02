@@ -867,4 +867,50 @@
   .modal-close:hover {
     color: var(--color-text-primary);
   }
+
+  .color-picker {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: var(--spacing-xs);
+    background-color: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xs);
+    display: flex;
+    gap: var(--spacing-xs);
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .color-option {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--color-bg-elevated);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    padding: 0;
+    background: none;
+  }
+
+  .color-option.default { background-color: var(--note-color-default); }
+  .color-option.blue { background-color: var(--note-color-blue); }
+  .color-option.green { background-color: var(--note-color-green); }
+  .color-option.yellow { background-color: var(--note-color-yellow); }
+  .color-option.red { background-color: var(--note-color-red); }
+  .color-option.purple { background-color: var(--note-color-purple); }
+  .color-option.gold { background-color: var(--note-color-gold); }
+
+  .color-option:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
+  }
+
+  .color-option.active {
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
+  }
 </style>

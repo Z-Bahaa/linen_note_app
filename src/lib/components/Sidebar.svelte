@@ -50,6 +50,8 @@
     justify-content: space-between;
     align-items: center;
     min-height: 60px;
+    height: 60px;
+    box-sizing: border-box;
   }
 
   .app-title {

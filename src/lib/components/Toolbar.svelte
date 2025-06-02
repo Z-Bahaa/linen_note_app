@@ -177,12 +177,15 @@
 <style>
   .toolbar {
     background-color: var(--color-bg-secondary);
-    padding: var(--spacing-md) 60px;
+    padding: 0 60px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--spacing-md);
     border-bottom: 1px solid var(--color-border);
+    height: 61px;
+    min-height: 61px;
+    box-sizing: border-box;
   }
 
   .toolbar-left,

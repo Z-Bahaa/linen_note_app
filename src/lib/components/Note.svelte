@@ -17,6 +17,7 @@
     restore: void;
     colorChange: NoteColor;
     action: string;
+    permanentlyDelete: void;
   }>();
 
   let isHovered = false;
@@ -85,6 +86,11 @@
 
   function handleEditModalDelete() {
     dispatch('delete');
+    showEditModal = false;
+  }
+
+  function handleEditModalPermanentlyDelete() {
+    notesStore.permanentlyDeleteNote(note.id);
     showEditModal = false;
   }
 
@@ -354,6 +360,7 @@
   on:save={handleEditModalSave}
   on:cancel={handleEditModalCancel}
   on:delete={handleEditModalDelete}
+  on:permanentlyDelete={handleEditModalPermanentlyDelete}
   on:archive={handleEditModalArchive}
   on:colorChange={handleEditModalColorChange}
 />

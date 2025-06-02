@@ -4,6 +4,7 @@
   import { fade } from 'svelte/transition';
   import { notesStore } from '$lib/stores/notes';
   import TagManager from './TagManager.svelte';
+  import ConfirmModal from './ConfirmModal.svelte';
 
   export let show = false;
   export let note: Note;
@@ -12,10 +13,13 @@
     save: Note;
     cancel: void;
     colorChange: NoteColor;
+    permanentlyDelete: void;
   }>();
 
   let editedNote: Note;
   let showColorPicker = false;
+  let showConfirmModal = false;
+  let confirmAction: 'deleteEmpty' | null = null;
 
   $: if (note) {
     editedNote = { ...note };
@@ -64,11 +68,24 @@
 
   function handleSave() {
     showColorPicker = false;
+    
+    // If note is empty, show confirmation modal for permanent deletion
+    if (!editedNote.title.trim() && !editedNote.content.trim() && editedNote.tags.length === 0) {
+      showConfirmModal = true;
+      return;
+    }
+    
     dispatch('save', editedNote);
+  }
+
+  function handleConfirm() {
+    dispatch('permanentlyDelete');
+    showConfirmModal = false;
   }
 
   function handleCancel() {
     showColorPicker = false;
+    showConfirmModal = false;
     dispatch('cancel');
   }
 
@@ -223,6 +240,16 @@
     </div>
   </div>
 {/if}
+
+<ConfirmModal
+  show={showConfirmModal}
+  title="Delete Note"
+  message="This note is empty. Would you like to permanently delete it? This action cannot be undone."
+  confirmText="Delete Permanently"
+  type="danger"
+  on:confirm={handleConfirm}
+  on:cancel={handleCancel}
+/>
 
 <style>
   .modal-backdrop {

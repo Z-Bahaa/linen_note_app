@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { fade } from 'svelte/transition';
   import { notesStore, currentViewType } from '$lib/stores/notes';
   import Toolbar from '$lib/components/Toolbar.svelte';
   import NotesGrid from '$lib/components/NotesGrid.svelte';
@@ -24,6 +25,18 @@
   let formErrors = {
     title: '',
     content: ''
+  };
+
+  let showColorPicker = false;
+
+  const colorClasses: Record<Note['color'], string> = {
+    default: 'note-color-default',
+    blue: 'note-color-blue',
+    green: 'note-color-green',
+    yellow: 'note-color-yellow',
+    red: 'note-color-red',
+    purple: 'note-color-purple',
+    gold: 'note-color-gold'
   };
 
   function validateForm() {
@@ -56,6 +69,7 @@
     };
     formError = '';
     formErrors = { title: '', content: '' };
+    showColorPicker = false;
     showNewNoteModal = true;
   }
 
@@ -177,6 +191,11 @@
     notesStore.clearSelection();
   }
 
+  function handleColorChange(color: Note['color']) {
+    formData.color = color;
+    showColorPicker = false;
+  }
+
   // Focus title input when modal opens
   $: if (showNewNoteModal) {
     setTimeout(() => {
@@ -282,19 +301,26 @@
       class="modal" 
       on:click|stopPropagation
       on:submit|preventDefault={handleSubmit}
+      class:note-color-default={formData.color === 'default'}
+      class:note-color-blue={formData.color === 'blue'}
+      class:note-color-green={formData.color === 'green'}
+      class:note-color-yellow={formData.color === 'yellow'}
+      class:note-color-red={formData.color === 'red'}
+      class:note-color-purple={formData.color === 'purple'}
+      class:note-color-gold={formData.color === 'gold'}
     >
       <div class="modal-header">
         <h2 id="modal-title" class="visually-hidden">Create New Note</h2>
         <div class="input-group">
-        <input
-          type="text"
+          <input
+            type="text"
             id="note-title"
             name="title"
             bind:value={formData.title}
-          placeholder="Note title..."
-          class="modal-title"
+            placeholder="Note title..."
+            class="modal-title"
             class:error={formErrors.title}
-          on:keydown={handleKeyDown}
+            on:keydown={handleKeyDown}
             aria-invalid={!!formErrors.title}
             aria-describedby={formErrors.title ? 'title-error' : undefined}
             maxlength="100"
@@ -314,19 +340,19 @@
       </div>
 
       <div class="input-group">
-      <textarea
+        <textarea
           id="note-content"
           name="content"
           bind:value={formData.content}
-        placeholder="Start writing..."
-        class="modal-content"
+          placeholder="Start writing..."
+          class="modal-content"
           class:error={formErrors.content}
-        on:keydown={handleKeyDown}
+          on:keydown={handleKeyDown}
           aria-invalid={!!formErrors.content}
           aria-describedby={formErrors.content ? 'content-error' : undefined}
           maxlength="10000"
-        rows="10"
-      />
+          rows="10"
+        />
         {#if formErrors.content}
           <div id="content-error" class="error-message">{formErrors.content}</div>
         {/if}
@@ -337,6 +363,32 @@
           {formError}
         </div>
       {/if}
+
+      <div class="color-picker-container">
+        <button
+          type="button"
+          class="action-button"
+          title="Change color"
+          on:click|stopPropagation={() => (showColorPicker = !showColorPicker)}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.47 2.22a.75.75 0 0 1 1.06 0c.403.403 1.999 2.127 3.499 4.362C17.509 8.785 19 11.635 19 14.25c0 2.524-.746 4.479-2.044 5.806C15.659 21.38 13.889 22 12 22c-1.89 0-3.659-.619-4.956-1.944C5.746 18.729 5 16.774 5 14.25c0-2.615 1.492-5.465 2.971-7.668 1.5-2.235 3.096-3.96 3.499-4.362ZM9.216 7.418C7.758 9.59 6.5 12.115 6.5 14.25c0 2.226.653 3.771 1.617 4.757.965.987 2.32 1.493 3.883 1.493 1.562 0 2.918-.506 3.883-1.493.964-.986 1.617-2.53 1.617-4.757 0-2.135-1.258-4.66-2.716-6.832A33.359 33.359 0 0 0 12 3.848a33.357 33.357 0 0 0-2.784 3.57Z" fill="currentColor"/>
+          </svg>
+        </button>
+        {#if showColorPicker}
+          <div class="color-picker" transition:fade>
+            {#each Object.keys(colorClasses) as color}
+              <button
+                type="button"
+                class="color-option {color}"
+                class:active={formData.color === color}
+                on:click|stopPropagation={() => handleColorChange(color as Note['color'])}
+                title={color.charAt(0).toUpperCase() + color.slice(1)}
+              />
+            {/each}
+          </div>
+        {/if}
+      </div>
 
       <div class="modal-footer">
         <button 
@@ -453,23 +505,103 @@
   }
 
   .modal {
-    background-color: var(--color-bg-secondary);
+    background-color: var(--note-color-default);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     width: 90%;
-    max-width: 600px;
+    max-width: 800px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
-    animation: slideUp 0.3s ease;
   }
+
+  .modal.note-color-default { background-color: var(--note-color-default); }
+  .modal.note-color-blue { background-color: var(--note-color-blue); }
+  .modal.note-color-green { background-color: var(--note-color-green); }
+  .modal.note-color-yellow { background-color: var(--note-color-yellow); }
+  .modal.note-color-red { background-color: var(--note-color-red); }
+  .modal.note-color-purple { background-color: var(--note-color-purple); }
+  .modal.note-color-gold { background-color: var(--note-color-gold); }
 
   .modal-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--spacing-sm);
     padding: var(--spacing-md);
     border-bottom: 1px solid var(--color-border);
+  }
+
+  .modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .color-picker-container {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--spacing-md);
+    padding-bottom: 0;
+  }
+
+  .color-picker {
+    position: absolute;
+    bottom: 100%;
+    right: var(--spacing-md);
+    margin-bottom: var(--spacing-xs);
+    background-color: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xs);
+    display: flex;
+    gap: var(--spacing-xs);
+    z-index: 10;
+  }
+
+  .color-option {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--color-bg-elevated);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .color-option.default { background-color: var(--note-color-default); }
+  .color-option.blue { background-color: var(--note-color-blue); }
+  .color-option.green { background-color: var(--note-color-green); }
+  .color-option.yellow { background-color: var(--note-color-yellow); }
+  .color-option.red { background-color: var(--note-color-red); }
+  .color-option.purple { background-color: var(--note-color-purple); }
+  .color-option.gold { background-color: var(--note-color-gold); }
+
+  .color-option:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
+  }
+
+  .color-option.active {
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
+  }
+
+  .action-button {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+  }
+
+  .action-button:hover {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
   }
 
   .modal-title {

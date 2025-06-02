@@ -26,6 +26,7 @@
     dispatch('addTag', tag);
     searchQuery = '';
     showSearchResults = false;
+    showTagPicker = false;
   }
 
   function handleRemoveTag(tag: string) {
@@ -37,6 +38,7 @@
       dispatch('createTag', searchQuery.trim());
       searchQuery = '';
       showSearchResults = false;
+      showTagPicker = false;
     }
   }
 
@@ -45,9 +47,9 @@
   }
 
   function handleSearchBlur() {
-    // Delay hiding to allow for clicks on results
     setTimeout(() => {
       showSearchResults = false;
+      showTagPicker = false;
     }, 200);
   }
 
@@ -103,6 +105,16 @@
             placeholder="Search or create tag..."
             class="tag-search"
           />
+          <button
+            type="button"
+            class="close-picker"
+            on:click={() => (showTagPicker = false)}
+            title="Close tag picker"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
 
         {#if showSearchResults}
@@ -223,10 +235,13 @@
   .search-container {
     padding: var(--spacing-xs);
     border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
   }
 
   .tag-search {
-    width: 100%;
+    flex: 1;
     background: none;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
@@ -276,5 +291,22 @@
 
   .create-tag-option:hover {
     color: var(--color-accent-blue);
+  }
+
+  .close-picker {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    padding: 4px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+  }
+
+  .close-picker:hover {
+    color: var(--color-text-primary);
   }
 </style> 
